@@ -1,5 +1,8 @@
 import cv2
 
+def hello_world():
+    print("Hello, world! (image_functions)")
+
 # Takes the result from GUI user decision on input source.
 # Defaults to 0 for default webcam as input.
 def get_videocapture_arg():
