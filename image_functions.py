@@ -84,6 +84,7 @@ def start_human_detection_loop(height, angle, fov):
 
             #vert_positions = get_people_base_pixel_location(boxes_around_people)
             #distances, lines = distance_functions.find_distances_between_positions(vert_positions)
+            #(function this)
             #for index, distance in enumerate(distances):
             #   if distance < 6ft
             #       display_line_and_distance(lines[index], distance)
