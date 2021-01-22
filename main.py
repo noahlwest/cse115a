@@ -5,6 +5,7 @@ import image_functions as img
 import calibration as cal
 import distance_functions as dist
 import gui_functions as gui
+import mapping
 
 if __name__ == "__main__":
 
@@ -12,7 +13,12 @@ if __name__ == "__main__":
     cal.hello_world()
     dist.hello_world()
     gui.hello_world()
+    mapping.hello_world()
     print("Starting program...")
+
+    #TODO: integrate Tim's code
+    #height, angle, fov = gui.display_gui_calibration()
+    #img.start_human_detection(height, angle, fov)
 
     cv2.startWindowThread()
     cap = cv2.VideoCapture(img.get_videocapture_arg())
@@ -29,3 +35,4 @@ if __name__ == "__main__":
     cap.release()
     cv2.destroyAllWindows()
     cv2.waitKey(1)
+
