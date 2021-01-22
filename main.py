@@ -15,24 +15,13 @@ if __name__ == "__main__":
     gui.hello_world()
     mapping.hello_world()
     print("Starting program...")
+    
+    webcam = True
+    img.init_opencv()
+    cap = img.start_videocapture("webcam", "none")
 
-    #TODO: integrate Tim's code
-    #height, angle, fov = gui.display_gui_calibration()
-    #img.start_human_detection(height, angle, fov)
+    height, angle, fov = gui.display_gui_calibration()
+    
+    img.start_human_detection_loop(height, angle, fov)
 
-    cv2.startWindowThread()
-    cap = cv2.VideoCapture(img.get_videocapture_arg())
-    img.set_cap_height_and_width(cap, 1280, 720)
-
-    while(True):
-
-        ret, frame = cap.read()
-
-        cv2.imshow('press q to exit', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-    cv2.waitKey(1)
-
+    img.stop_opencv(cap)
