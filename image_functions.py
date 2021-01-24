@@ -65,6 +65,7 @@ def get_people_base_pixel_location(boxes):
     #   location = get_person_base_pixel_location(box)
     #   locations_list.append(location)
     #return locations_list
+    pass
 
 
 def get_person_base_pixel_location():
