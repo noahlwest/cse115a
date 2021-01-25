@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMessageBox
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(400, 450)
+        MainWindow.resize(380, 470)
         MainWindow.setStatusTip("")
 
         # Choose One Title
@@ -58,22 +58,27 @@ class Ui_MainWindow(object):
 
         #Height input box
         self.HeightIn = QtWidgets.QLineEdit(self.centralwidget)
-        self.HeightIn.setGeometry(QtCore.QRect(10, 170, 113, 20))
+        self.HeightIn.setGeometry(QtCore.QRect(10, 140, 113, 20))
         self.HeightIn.setObjectName("HeightIn")
 
         #Angle Input Box
         self.AngleIn = QtWidgets.QLineEdit(self.centralwidget)
-        self.AngleIn.setGeometry(QtCore.QRect(10, 220, 113, 20))
+        self.AngleIn.setGeometry(QtCore.QRect(10, 190, 113, 20))
         self.AngleIn.setObjectName("AngleIn")
 
-        #Field of View Input Box
-        self.FOVIn = QtWidgets.QLineEdit(self.centralwidget)
-        self.FOVIn.setGeometry(QtCore.QRect(10, 270, 113, 20))
-        self.FOVIn.setObjectName("FOVIn")
+        #Field of View Hor Input Box
+        self.FOV_H_In = QtWidgets.QLineEdit(self.centralwidget)
+        self.FOV_H_In.setGeometry(QtCore.QRect(10, 260, 113, 20))
+        self.FOV_H_In.setObjectName("FOV_H_In")
+
+        #Field of View Ver Input Box
+        self.FOV_V_In = QtWidgets.QLineEdit(self.centralwidget)
+        self.FOV_V_In.setGeometry(QtCore.QRect(10, 330 , 113, 20))
+        self.FOV_V_In.setObjectName("FOV_V_In")
 
         #Required Input Title
         self.ReqiuredIn = QtWidgets.QLabel(self.centralwidget)
-        self.ReqiuredIn.setGeometry(QtCore.QRect(10, 110, 151, 31))
+        self.ReqiuredIn.setGeometry(QtCore.QRect(10, 80, 151, 31))
         font = QtGui.QFont()
         font.setFamily("Times New Roman")
         font.setPointSize(18)
@@ -82,7 +87,7 @@ class Ui_MainWindow(object):
 
         #Height Title
         self.HeightTitle = QtWidgets.QLabel(self.centralwidget)
-        self.HeightTitle.setGeometry(QtCore.QRect(10, 150, 101, 21))
+        self.HeightTitle.setGeometry(QtCore.QRect(10, 120, 101, 21))
         font = QtGui.QFont()
         font.setFamily("Times New Roman")
         font.setPointSize(12)
@@ -91,21 +96,30 @@ class Ui_MainWindow(object):
 
         #Angle Title
         self.AngleTitle = QtWidgets.QLabel(self.centralwidget)
-        self.AngleTitle.setGeometry(QtCore.QRect(10, 200, 101, 21))
+        self.AngleTitle.setGeometry(QtCore.QRect(10, 170, 101, 21))
         font = QtGui.QFont()
         font.setFamily("Times New Roman")
         font.setPointSize(12)
         self.AngleTitle.setFont(font)
         self.AngleTitle.setObjectName("AngleTitle")
 
-        #Field of View Title
-        self.FOVTitle = QtWidgets.QLabel(self.centralwidget)
-        self.FOVTitle.setGeometry(QtCore.QRect(10, 250, 101, 21))
+        #Field of View Hor Title
+        self.FOV_H_Title = QtWidgets.QLabel(self.centralwidget)
+        self.FOV_H_Title.setGeometry(QtCore.QRect(10, 220, 131, 40))
         font = QtGui.QFont()
         font.setFamily("Times New Roman")
         font.setPointSize(12)
-        self.FOVTitle.setFont(font)
-        self.FOVTitle.setObjectName("FOVTitle")
+        self.FOV_H_Title.setFont(font)
+        self.FOV_H_Title.setObjectName("FOV_H_Title")
+
+        #Field of View Ver Title
+        self.FOV_V_Title = QtWidgets.QLabel(self.centralwidget)
+        self.FOV_V_Title.setGeometry(QtCore.QRect(10, 290, 131, 40))
+        font = QtGui.QFont()
+        font.setFamily("Times New Roman")
+        font.setPointSize(12)
+        self.FOV_V_Title.setFont(font)
+        self.FOV_V_Title.setObjectName("FOV_V_Title")
 
         #Distance Options title
         self.DistanceTitle = QtWidgets.QLabel(self.centralwidget)
@@ -136,7 +150,7 @@ class Ui_MainWindow(object):
 
         #Start Button
         self.StartButton = QtWidgets.QPushButton(self.centralwidget)
-        self.StartButton.setGeometry(QtCore.QRect(140, 320, 101, 41))
+        self.StartButton.setGeometry(QtCore.QRect(140, 370, 101, 41))
         font = QtGui.QFont()
         font.setFamily("Times New Roman")
         font.setPointSize(12)
@@ -175,9 +189,10 @@ class Ui_MainWindow(object):
         self.Video.setText(_translate("MainWindow", "Video"))
         self.Title.setText(_translate("MainWindow", "Social Distance Detector"))
         self.ReqiuredIn.setText(_translate("MainWindow", "Required Input"))
-        self.HeightTitle.setText(_translate("MainWindow", "Height (feet)"))
+        self.HeightTitle.setText(_translate("MainWindow", "Height (Feet)"))
         self.AngleTitle.setText(_translate("MainWindow", "Angle (Degree)"))
-        self.FOVTitle.setText(_translate("MainWindow", "Field Of View"))
+        self.FOV_H_Title.setText(_translate("MainWindow", "Field Of View\nHorizontal (Degree)"))
+        self.FOV_V_Title.setText(_translate("MainWindow", "Field Of View\nVertical (Degree)"))
         self.DistanceTitle.setText(_translate("MainWindow", "Distance Options"))
         self.AudioCheck.setText(_translate("MainWindow", " Audio Alert"))
         self.ScreenCheck.setText(_translate("MainWindow", "Screen Shots"))
@@ -191,7 +206,8 @@ class Ui_MainWindow(object):
         msg = QMessageBox()
         height = 0
         angle = 0
-        fov = 0
+        fov_h = 0
+        fov_v = 0
 
         #If a value is entered, put it into correspounding value
         #If no value entered make it a value of -1
@@ -203,23 +219,32 @@ class Ui_MainWindow(object):
             angle = -1
         else:
             angle = int(self.AngleIn.text())
-        if (not bool(self.FOVIn.text()) or not(self.FOVIn.text().isnumeric())):
-            fov = -1
+        if (not bool(self.FOV_H_In.text()) or not(self.FOV_H_In.text().isnumeric())):
+            fov_h = -1
         else:
-            fov = int(self.FOVIn.text())
+            fov_h = int(self.FOV_H_In.text())
 
-        #If a INVLAID value throw a pop up error message
+        if (not bool(self.FOV_V_In.text()) or not(self.FOV_V_In.text().isnumeric())):
+            fov_v = -1
+        else:
+            fov_v = int(self.FOV_V_In.text())
+
+        #If a INVLAID value, throw a pop up error message
         #Else link code below
-        if(height < 0 or height > 200 or angle < 0 or angle > 359
-         or fov < 0 or fov > 100):
+        if(height < 0 or height > 200 or angle < 0 or angle > 90
+         or fov_h < 0 or fov_h >359 or fov_v < 0 or fov_v > 359):
             msg.setWindowTitle("ERROR")
             msg.setText("Invalid value(s) entered")
             msg.setIcon(QMessageBox.Critical)
-            msg.setDetailedText("All values must be numbers and cannot be empty\n\nHeight must be in the range 0 to 200 feet\n\nAngle must be in the range 0 to 359 degrees\n\nField of View must be in the range 0 to 100")
+            msg.setDetailedText("All values must be numbers and cannot be empty\n\nHeight must be in the range 0 to 200 feet\n\nAngle must be in the range 0 to 90 degrees\n\nField of Views must be in the range 0 to 360 degrees ")
         else:
             msg.setWindowTitle("Link rest of code here")
             msg.setText("Link the code here")
             msg.setIcon(QMessageBox.Information)
+
+        #LINK CODE HERE
+        #VALUES PASSED IN
+        # height,angle,fov_h,fov_v,bool(self.WebCam), 2 alerts
 
         # Will be moved inside of if statement but for now leave here
         x = msg.exec_()
