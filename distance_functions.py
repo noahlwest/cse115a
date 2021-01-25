@@ -21,3 +21,9 @@ def find_distance(height, angle, fov, vertical_position_of_persons_feet):
     print("final_angle:", final_angle)
     distance = height * (1 / math.cos(final_angle))
     return distance
+
+def find_distances_between_positions(vert_positions):
+   distances = []
+   lines = []
+   #print("find_distances_between_positions was called with vert_positions = ", vert_positions)
+   return distances, lines

@@ -9,10 +9,9 @@ import gui_functions as gui
 if __name__ == "__main__":
 
     print("Starting program...")
-    
-    webcam = True
+    #print(cal.get_resolution())
+    #webcam = True
     img.init_opencv()
-
     height, angle, fov = gui.display_gui_calibration()
     
     img.start_human_detection_loop(height, angle, fov)
