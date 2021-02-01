@@ -237,3 +237,15 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
     cv2.imshow("Press 'esc' to exit", img)
 
     return counter
+
+
+def draw_line(frame, xA, yA, xB, yB, color):
+    point_one = (xA, yA)
+    point_two = (xB, yB)
+    cv2.line(frame, point_one, point_two, color, thickness=2)
+
+
+def draw_text(frame, text, x_coord, y_coord, color):
+    point = (x_coord, y_coord)
+    cv2.putText(frame, text, point, font=cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+
