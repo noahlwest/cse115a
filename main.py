@@ -81,25 +81,25 @@ class Ui_MainWindow(object):
         self.HeightIn = QtWidgets.QLineEdit(self.centralwidget)
         self.HeightIn.setGeometry(QtCore.QRect(10, 140, 113, 20))
         self.HeightIn.setObjectName("HeightIn")
-        self.HeightIn.setPlaceholderText("5 (DEFAULT)")
+        self.HeightIn.setPlaceholderText("9 (DEFAULT)")
 
         #Angle Input Box
         self.AngleIn = QtWidgets.QLineEdit(self.centralwidget)
         self.AngleIn.setGeometry(QtCore.QRect(10, 190, 113, 20))
         self.AngleIn.setObjectName("AngleIn")
-        self.AngleIn.setPlaceholderText("45 (DEFAULT)")
+        self.AngleIn.setPlaceholderText("90 (DEFAULT)")
 
         #Field of View Hor Input Box
         self.FOV_H_In = QtWidgets.QLineEdit(self.centralwidget)
         self.FOV_H_In.setGeometry(QtCore.QRect(10, 260, 113, 20))
         self.FOV_H_In.setObjectName("FOV_H_In")
-        self.FOV_H_In.setPlaceholderText("45 (DEFAULT)")
+        self.FOV_H_In.setPlaceholderText("90 (DEFAULT)")
 
         #Field of View Ver Input Box
         self.FOV_V_In = QtWidgets.QLineEdit(self.centralwidget)
         self.FOV_V_In.setGeometry(QtCore.QRect(10, 330 , 113, 20))
         self.FOV_V_In.setObjectName("FOV_V_In")
-        self.FOV_V_In.setPlaceholderText("45 (DEFAULT)")
+        self.FOV_V_In.setPlaceholderText("110 (DEFAULT)")
 
         #Required Input Title
         #self.ReqiuredIn = QtWidgets.QLabel(self.centralwidget)
@@ -228,10 +228,10 @@ class Ui_MainWindow(object):
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+E"))
 
     def show_popup(self):
-        height = 5
-        angle = 45
-        fov_h = 45
-        fov_v = 45
+        height = 9
+        angle = 90
+        fov_h = 90
+        fov_v = 110
         # Dummy variables for the otherboxes on GUI --
         webCheck = self.WebCam.isChecked()
         audioAlert = self.AudioCheck.isChecked()
