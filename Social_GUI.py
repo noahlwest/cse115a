@@ -15,7 +15,7 @@ from PyQt5.QtCore import QRect, QRectF, QSize, Qt
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(380, 470)
+        MainWindow.setFixedSize(380, 470)
         MainWindow.setStatusTip("")
 
         #Background
