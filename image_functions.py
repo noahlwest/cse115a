@@ -212,15 +212,6 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
     # get "unique" boxes
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     font = cv2.FONT_HERSHEY_PLAIN
-    # try:
-    #    x, y, w, h = boxes[0]
-    #    label = str(classes[class_ids[0]])
-    #    color = colors[0]
-    #    cv2.rectangle(img, (x, y), (x+w, y+h), color, 2)
-    #    cv2.putText(img, label, (x, y - 5), font, 1, color, 1)
-    # except:
-    # no detections
-    #    pass
 
     counter = 0
     for i in range(len(boxes)):
