@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import math
 import os
+import sys
 import image_functions as img
 import calibration as cal
 import distance_functions as dist
@@ -23,7 +24,7 @@ class Ui_MainWindow(object):
 
         try:
             background = os.getcwd()
-            background += "\\background.png"
+            background += "\\back2.png"
             if not os.path.exists(background):
                 print(f"file path to {background} not found")
 
@@ -45,6 +46,7 @@ class Ui_MainWindow(object):
         self.ChooseTitle.setGeometry(QtCore.QRect(240, 95, 111, 61))
         font = QtGui.QFont()
         font.setFamily("Times New Roman")
+        
         font.setPointSize(14)
         self.ChooseTitle.setFont(font)
         self.ChooseTitle.setObjectName("ChooseTitle")
@@ -318,3 +320,14 @@ class Ui_MainWindow(object):
             img.init_opencv()
             img.start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots)
             img.stop_opencv()
+
+
+
+def start_gui():
+    print("Starting program...")
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
