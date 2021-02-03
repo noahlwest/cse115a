@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import distance_functions
 import os
+import wget
 
 
 def hello_world():
@@ -154,6 +155,12 @@ def load_yolo():
         
         if not os.path.exists(yolov3_weights) or not os.path.exists(yolov3_cfg):
             print(f"file path to {yolov3_weights} or {yolov3_cfg} not found")
+            print("Attempting to download yolov3.weights (250MB)...")
+
+            url = "https://pjreddie.com/media/files/yolov3.weights"
+            wget.download(url)
+
+            print("Succesfully downloaded yolov3.weights")
     except Exception as e:
         print(e)
 
@@ -238,5 +245,5 @@ def draw_line(frame, xA, yA, xB, yB, color):
 
 def draw_text(frame, text, x_coord, y_coord, color):
     point = (x_coord, y_coord)
-    cv2.putText(frame, text, point, font=cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+    cv2.putText(frame, text, point, cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
 
