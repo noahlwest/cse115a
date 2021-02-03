@@ -157,10 +157,11 @@ def load_yolo():
             print(f"file path to {yolov3_weights} or {yolov3_cfg} not found")
             print("Attempting to download yolov3.weights (250MB)...")
 
-            url = "https://pjreddie.com/media/files/yolov3.weights"
+            #url = "https://pjreddie.com/media/files/yolov3.weights" #official source
+            url = "https://www.dropbox.com/s/xb3n2zycopf4zte/yolov3.weights?dl=1" #our own dropbox link
             wget.download(url)
 
-            print("Succesfully downloaded yolov3.weights")
+            print("\nSuccesfully downloaded yolov3.weights")
     except Exception as e:
         print(e)
 
