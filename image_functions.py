@@ -4,6 +4,8 @@ import distance_functions
 import os
 import wget
 
+COLOR_GREEN = (0, 255, 0)
+COLOR_RED = (0, 0, 255)
 
 def hello_world():
     print("Hello, world! (image_functions)")
