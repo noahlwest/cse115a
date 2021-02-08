@@ -1,10 +1,16 @@
 import math
 
+
+def hello_world():
+    print("Hello, world! (distance_functions)")
+
+
 def adjust_angle(angle, fov, vertical_position):
     bottom_angle = angle - (fov / 2)
     final_angle = bottom_angle + ((vertical_position/100) * fov)
     #any angle > 90 is an error or false detection
     return final_angle
+
 
 def find_distance(height, angle, fov, vertical_position_of_persons_feet):
     print("height:", height)
