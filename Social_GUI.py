@@ -1,14 +1,10 @@
-import numpy as np
-import cv2
-import math
 import os
 import sys
 import image_functions as img
-import distance_functions as dist
+
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QImage, QLinearGradient, QPainter, QPalette, QBrush
-from PyQt5.QtCore import QRect, QRectF, QSize, Qt
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtGui import QImage, QPalette, QBrush
 
 
 class Ui_MainWindow(object):
