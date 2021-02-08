@@ -2,9 +2,7 @@ import numpy as np
 import cv2
 import math
 import image_functions as img
-import calibration as cal
 import distance_functions as dist
-import gui_functions as gui
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 
