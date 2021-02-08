@@ -1,4 +1,0 @@
-Libraries:
-OpenCV version 4.3.0 (version 4.5+ may not work correctly)
-mpg123
-Numpy version 1.19.5 (unsure if other versions will work)
