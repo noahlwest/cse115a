@@ -2,7 +2,10 @@ import cv2
 import numpy as np
 import distance_functions
 import os
+import wget
 
+COLOR_GREEN = (0, 255, 0)
+COLOR_RED = (0, 0, 255)
 
 def hello_world():
     print("Hello, world! (image_functions)")
@@ -154,6 +157,13 @@ def load_yolo():
         
         if not os.path.exists(yolov3_weights) or not os.path.exists(yolov3_cfg):
             print(f"file path to {yolov3_weights} or {yolov3_cfg} not found")
+            print("Attempting to download yolov3.weights (250MB)...")
+
+            #url = "https://pjreddie.com/media/files/yolov3.weights" #official source
+            url = "https://www.dropbox.com/s/xb3n2zycopf4zte/yolov3.weights?dl=1" #our own dropbox link
+            wget.download(url)
+
+            print("\nSuccesfully downloaded yolov3.weights")
     except Exception as e:
         print(e)
 
@@ -212,15 +222,6 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
     # get "unique" boxes
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     font = cv2.FONT_HERSHEY_PLAIN
-    # try:
-    #    x, y, w, h = boxes[0]
-    #    label = str(classes[class_ids[0]])
-    #    color = colors[0]
-    #    cv2.rectangle(img, (x, y), (x+w, y+h), color, 2)
-    #    cv2.putText(img, label, (x, y - 5), font, 1, color, 1)
-    # except:
-    # no detections
-    #    pass
 
     counter = 0
     for i in range(len(boxes)):
@@ -237,3 +238,45 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
     cv2.imshow("Press 'esc' to exit", img)
 
     return counter
+
+
+def draw_line(frame, xA, yA, xB, yB, color):
+    point_one = (xA, yA)
+    point_two = (xB, yB)
+    cv2.line(frame, point_one, point_two, color, thickness=2)
+
+
+def draw_text(frame, text, x_coord, y_coord, color):
+    point = (x_coord, y_coord)
+    cv2.putText(frame, text, point, cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+
+
+def dist_on_foot(dis, frame, coord):
+    text = str(round(dis, 2))
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    bottomLeft = coord
+    fontScale = 1
+    fontColor = (255, 255, 255)
+    lineType = 2
+    cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
+
+
+def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
+    indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
+    feet = get_feet_pos(boxes)
+    for i in range(len(boxes)):
+        if i in indexes:
+            if class_ids[i] == 0:
+                x1, y1 = feet[i]
+                x1 = int(x1)
+                y1 = int(y1)
+                dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1/720), img, (x1 - 20, y1))
+                print("Distance: ", distance_functions.find_distance(7.5, 60, 45, y1/720))
+
+
+def get_feet_pos(boxes):
+    feet_pos = []
+    for (left, top, right, bottom) in boxes:
+        feet_pos.append(((2 * left + right) / 2, bottom + top))
+    return feet_pos
+
