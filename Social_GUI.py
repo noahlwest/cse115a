@@ -43,10 +43,11 @@ class Ui_MainWindow(object):
         self.ChooseTitle.setGeometry(QtCore.QRect(240, 95, 111, 61))
         font = QtGui.QFont()
         font.setFamily("Times New Roman")
-        
         font.setPointSize(14)
         self.ChooseTitle.setFont(font)
         self.ChooseTitle.setObjectName("ChooseTitle")
+        self.ChooseTitle.setStyleSheet("color: #E7E7E7;")
+
 
         #Webcam Option
         self.WebCam = QtWidgets.QRadioButton(self.centralwidget)
@@ -57,6 +58,7 @@ class Ui_MainWindow(object):
         self.WebCam.setFont(font)
         self.WebCam.setObjectName("WebCam")
         self.WebCam.setChecked(True)
+        self.WebCam.setStyleSheet("color: #E7E7E7;")
 
 
         #Video Option
@@ -67,6 +69,8 @@ class Ui_MainWindow(object):
         font.setPointSize(10)
         self.Video.setFont(font)
         self.Video.setObjectName("Video")
+        self.Video.setStyleSheet("color: #E7E7E7;")
+
 
         #Social Distance Detector Title
         self.Title = QtWidgets.QLabel(self.centralwidget)
@@ -76,6 +80,8 @@ class Ui_MainWindow(object):
         font.setPointSize(20)
         self.Title.setFont(font)
         self.Title.setObjectName("Title")
+        self.Title.setStyleSheet("color: #E7E7E7;")
+
 
         #Height input box
         self.HeightIn = QtWidgets.QLineEdit(self.centralwidget)
@@ -147,6 +153,8 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.HeightTitle.setFont(font)
         self.HeightTitle.setObjectName("HeightTitle")
+        self.HeightTitle.setStyleSheet("color: #E7E7E7;")
+       
 
         #Angle Title
         self.AngleTitle = QtWidgets.QLabel(self.centralwidget)
@@ -156,6 +164,7 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.AngleTitle.setFont(font)
         self.AngleTitle.setObjectName("AngleTitle")
+        self.AngleTitle.setStyleSheet("color: #E7E7E7;")
 
         #Field of View Hor Title
         self.FOV_H_Title = QtWidgets.QLabel(self.centralwidget)
@@ -165,6 +174,8 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.FOV_H_Title.setFont(font)
         self.FOV_H_Title.setObjectName("FOV_H_Title")
+        self.FOV_H_Title.setStyleSheet("color: #E7E7E7;")
+
 
         #Field of View Ver Title
         self.FOV_V_Title = QtWidgets.QLabel(self.centralwidget)
@@ -174,6 +185,8 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.FOV_V_Title.setFont(font)
         self.FOV_V_Title.setObjectName("FOV_V_Title")
+        self.FOV_V_Title.setStyleSheet("color: #E7E7E7;")
+
 
         #Distance Options title
         self.DistanceTitle = QtWidgets.QLabel(self.centralwidget)
@@ -183,6 +196,8 @@ class Ui_MainWindow(object):
         font.setPointSize(14)
         self.DistanceTitle.setFont(font)
         self.DistanceTitle.setObjectName("DistanceTitle")
+        self.DistanceTitle.setStyleSheet("color: #E7E7E7;")
+
 
         #Audio Alert Check Box
         self.AudioCheck = QtWidgets.QCheckBox(self.centralwidget)
@@ -192,6 +207,8 @@ class Ui_MainWindow(object):
         font.setPointSize(10)
         self.AudioCheck.setFont(font)
         self.AudioCheck.setObjectName("AudioCheck")
+        self.AudioCheck.setStyleSheet("color: #E7E7E7;")
+
 
         #Screen Shot Check Box
         self.ScreenCheck = QtWidgets.QCheckBox(self.centralwidget)
@@ -201,6 +218,8 @@ class Ui_MainWindow(object):
         font.setPointSize(10)
         self.ScreenCheck.setFont(font)
         self.ScreenCheck.setObjectName("ScreenCheck")
+        self.ScreenCheck.setStyleSheet("color: #E7E7E7;")
+
 
         #Start Button
         self.StartButton = QtWidgets.QPushButton(self.centralwidget)
@@ -213,8 +232,10 @@ class Ui_MainWindow(object):
         self.StartButton.setFont(font)
         self.StartButton.setObjectName("StartButton")
         self.StartButton.setStyleSheet(
-                                        "border :4px solid #555;"
-                                        "border-top-left-radius :35px;"
+                                        "color: white;"
+                                        "background-color: #343434; "
+                                        "border : 4px solid #555;"
+                                        "border-top-left-radius : 35px;"
                                         "border-top-right-radius : 35px; "
                                         "border-bottom-left-radius : 35px; "
                                         "border-bottom-right-radius : 35px;"
@@ -261,6 +282,9 @@ class Ui_MainWindow(object):
         self.AudioCheck.setText(_translate("MainWindow", " Audio Alert"))
         self.ScreenCheck.setText(_translate("MainWindow", "Screen Shots"))
         self.StartButton.setText(_translate("MainWindow", "Start"))
+
+        # self.StartButton.setStyleSheet('QPushButton {background-color: #343434; color: white;}')
+
         self.menuFIle.setTitle(_translate("MainWindow", "File"))
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionExit.setStatusTip(_translate("MainWindow", "Exit The Program"))
