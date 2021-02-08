@@ -261,7 +261,7 @@ def dist_on_foot(dis, frame, coord):
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
 
 
-def print_on_feet(boxes, confs, colors, class_ids, img):
+def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     feet = get_feet_pos(boxes)
     for i in range(len(boxes)):
@@ -270,8 +270,9 @@ def print_on_feet(boxes, confs, colors, class_ids, img):
                 x1, y1 = feet[i]
                 x1 = int(x1)
                 y1 = int(y1)
-                dist_on_foot(distance_functions.find_distance(7.5, 60, 45, y1/720), img, (x1 - 20, y1))
+                dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1/720), img, (x1 - 20, y1))
                 print("Distance: ", distance_functions.find_distance(7.5, 60, 45, y1/720))
+
 
 def get_feet_pos(boxes):
     feet_pos = []
