@@ -2,11 +2,9 @@ import numpy as np
 import cv2
 import math
 import image_functions as img
-import calibration as cal
-import distance_functions as dist
-import gui_functions as gui
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
+import sys
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -205,7 +203,16 @@ class Ui_MainWindow(object):
         angle = 0
         fov_h = 0
         fov_v = 0
-
+        needAudio = self.AudioCheck.checkState()
+        if needAudio != 0:
+           needAudio = True
+        else:
+           needAudio = False
+        needScreen = self.ScreenCheck.checkState()
+        if needScreen != 0:
+           needScreen = True
+        else:
+           needScreen = False
         #If a value is entered, put it into correspounding value
         #If no value entered make it a value of -1
         if (not (bool(self.HeightIn.text())) or not(self.HeightIn.text().isnumeric())):
@@ -230,27 +237,27 @@ class Ui_MainWindow(object):
         #Else link code below
         if(height < 0 or height > 200 or angle < 0 or angle > 90
          or fov_h < 0 or fov_h >359 or fov_v < 0 or fov_v > 359):
+            print("needAlarm = ", str(needAudio), " and needScreen = ", str(needScreen))
             msg.setWindowTitle("ERROR")
             msg.setText("Invalid value(s) entered")
             msg.setIcon(QMessageBox.Critical)
             msg.setDetailedText("All values must be numbers and cannot be empty\n\nHeight must be in the range 0 to 200 feet\n\nAngle must be in the range 0 to 90 degrees\n\nField of Views must be in the range 0 to 360 degrees ")
             x = msg.exec_()
         else:
-            MainWindow.showMinimized()
+            #MainWindow.showMinimized()
+            print("needAlarm = ", str(needAudio), " and needScreen = ", str(needScreen))
             img.init_opencv()
-            img.start_human_detection_loop(height, angle, fov_h)
+            img.start_human_detection_loop(height, angle, fov_h, needScreen, needAudio)
             img.stop_opencv()
-
 
 if __name__ == "__main__":
     print("Starting program...")
-    #print(cal.get_resolution())
-    #webcam = True
-    import sys
     app = QtWidgets.QApplication(sys.argv)
+    print("Finished starting up the app...")
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
+    print("Finished starting up the window...")
     MainWindow.show()
 
     sys.exit(app.exec_())

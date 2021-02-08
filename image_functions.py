@@ -3,19 +3,12 @@ import numpy as np
 import distance_functions
 import os
 
-
-def hello_world():
-    print("Hello, world! (image_functions)")
-
-
 def init_opencv():
     cv2.startWindowThread()
-
 
 def stop_opencv():
     cv2.destroyAllWindows()
     cv2.waitKey(1)
-
 
 def start_videocapture(source, location):
     if source == "webcam":
@@ -34,11 +27,8 @@ def start_videocapture(source, location):
 
 # Takes the result from GUI user decision on input source.
 # Defaults to 0 for default webcam as input.
-
-
 def get_videocapture_arg():
     return 0
-
 
 def set_cap_height_and_width(cap, height, width):
     #3 == width, 4 == height
@@ -47,37 +37,8 @@ def set_cap_height_and_width(cap, height, width):
     cap.set(HEIGHT_CONSTANT, height)
     cap.set(WIDTH_CONSTANT, width)
 
-
 def resize_frame(frame, width, height):
     cv2.resize(frame, (width, height))
-
-
-def display_boxes(boxes, frame):
-    for (xA, yA, xB, yB) in boxes:
-        point_one = (xA, yA)
-        point_two = (xB, yB)
-        color = (0, 255, 0)
-        line_width = 2
-        cv2.rectangle(frame, point_one, point_two, color, line_width)
-
-
-def detect_people(frame):
-    # Create a list of boxes, one for each person detected
-    locations_list = []
-
-    # some loop to yoink and analize frames
-    #print("[+] Simulated human found")
-    #vert_position = get_person_base_pixel_location()
-    #distance = distance_functions.find_distance(height, angle, fov, vert_position)
-    # [TODO] now compare this data against other humans with some function
-    #
-    #print("[+] Human distance found:", distance)
-    #
-    ##print("[+] Continue simulation...")
-    #print("[+] Ending detection...")
-
-    return locations_list
-
 
 def get_people_base_pixel_location(boxes):
     locations_list = []
@@ -87,12 +48,10 @@ def get_people_base_pixel_location(boxes):
     # return locations_list
     pass
 
-
 def get_person_base_pixel_location():
     # from 1-100 ideally
     # 50 is middle of camera
     return 50
-
 
 def display_number_of_people(num_people, frame):
     text = "Number of people detected = " + str(num_people)
@@ -103,32 +62,31 @@ def display_number_of_people(num_people, frame):
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
 
-
-def start_human_detection_loop(height, angle, fov):
+def start_human_detection_loop(height, angle, fov, needScreen, needAudio):
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
-    cap = start_videocapture("webcam", "none")
+    cap = start_videocapture("video_file", "newtest.mp4")
     boxes_around_people = []
-
+    myAudioFile = "audio.mp3"
+    audioToPlay = "mpg123 " + myAudioFile
+    imgCount = 0
     while(True):
         ret, frame = cap.read()
-
-        boxes_around_people = detect_people(frame)
-        display_boxes(boxes_around_people, frame)
-        vert_positions = get_people_base_pixel_location(boxes_around_people)
-        distances, lines = distance_functions.find_distances_between_positions(
-            vert_positions)
-        numBoxes = len(boxes_around_people)
-        # (function this)
-        # for index, distance in enumerate(distances):
-        #   if distance < 6ft
-        #       display_line_and_distance(lines[index], distance)
-
-        #print("Number of boxes: ", numBoxes)
 
         height, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
         boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
+        #if 2 people are too close together:
+        if needAudio == True:
+           #os.system(audioToPlay)
+           print("Implement audio playing code here")
+        if needScreen == True:
+           print("Implement screenshot saving code here")
+           cv2.imwrite("output" + str(imgCount) + ".jpg", frame)
+           imgCount += 1
+        #vert_positions = get_people_base_pixel_location(boxes)
+        #distances, lines = distance_functions.find_distances_between_positions(
+        #    vert_positions)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
 
         key = cv2.waitKey(1)
@@ -139,7 +97,6 @@ def start_human_detection_loop(height, angle, fov):
 
     print("[+] Ending detection...")
 
-
 def load_yolo():
 
     yolov3_weights = ""
@@ -147,10 +104,10 @@ def load_yolo():
 
     try:
         yolov3_weights = os.getcwd()
-        yolov3_weights += "\\yolov3.weights"
+        yolov3_weights += "/yolov3.weights"
 
         yolov3_cfg = os.getcwd()
-        yolov3_cfg += "\\yolov3.cfg"
+        yolov3_cfg += "/yolov3.cfg"
         
         if not os.path.exists(yolov3_weights) or not os.path.exists(yolov3_cfg):
             print(f"file path to {yolov3_weights} or {yolov3_cfg} not found")
@@ -168,7 +125,6 @@ def load_yolo():
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
     return net, classes, colors, output_layers
 
-
 def display_blob(blob):
     '''
             Three images each for RED, GREEN, BLUE channel
@@ -177,14 +133,12 @@ def display_blob(blob):
         for n, imgb in enumerate(b):
             cv2.imshow(str(n), imgb)
 
-
 def detect_objects(img, net, outputLayers):
     blob = cv2.dnn.blobFromImage(img, scalefactor=0.00392, size=(
         320, 320), mean=(0, 0, 0), swapRB=True, crop=False)
     net.setInput(blob)
     outputs = net.forward(outputLayers)
     return blob, outputs
-
 
 def get_box_dimensions(outputs, height, width):
     boxes = []
@@ -206,7 +160,6 @@ def get_box_dimensions(outputs, height, width):
                 confs.append(float(conf))
                 class_ids.append(class_id)
     return boxes, confs, class_ids
-
 
 def draw_labels(boxes, confs, colors, class_ids, classes, img):
     # get "unique" boxes
