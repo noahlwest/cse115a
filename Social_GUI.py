@@ -4,9 +4,7 @@ import math
 import os
 import sys
 import image_functions as img
-import calibration as cal
 import distance_functions as dist
-import gui_functions as gui
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QImage, QLinearGradient, QPainter, QPalette, QBrush
@@ -27,7 +25,6 @@ class Ui_MainWindow(object):
             background += "\\back2.png"
             if not os.path.exists(background):
                 print(f"file path to {background} not found")
-
         except Exception as e:
             print(e)
 
@@ -178,9 +175,6 @@ class Ui_MainWindow(object):
         self.FOV_V_Title.setFont(font)
         self.FOV_V_Title.setObjectName("FOV_V_Title")
 
-
-
-
         #Distance Options title
         self.DistanceTitle = QtWidgets.QLabel(self.centralwidget)
         self.DistanceTitle.setGeometry(QtCore.QRect(240, 220, 131, 26))
@@ -277,6 +271,7 @@ class Ui_MainWindow(object):
         angle = 90
         fov_h = 90
         fov_v = 110
+        
         # Dummy variables for the otherboxes on GUI --
         webCheck = self.WebCam.isChecked()
         audioAlert = self.AudioCheck.isChecked()
@@ -284,31 +279,35 @@ class Ui_MainWindow(object):
 
         #If a value is entered, put it into correspounding value
         #If no value entered keep the default
-        if (not(self.HeightIn.text().isnumeric()) and (bool(self.HeightIn.text()))):
+
+        # we can now accept float values instead of int only
+        if  ( not isinstance(int(float(self.HeightIn.text())), int) or not isinstance(float(self.HeightIn.text()), float)) and bool(self.HeightIn.text()):
             height = -1
-        elif bool(self.HeightIn.text()):
-            height = int(self.HeightIn.text())
-        if (not(self.AngleIn.text().isnumeric()) and (bool(self.AngleIn.text()))):
+        elif bool( self.HeightIn.text() ):
+            height = float(self.HeightIn.text())
+        
+        if ( not isinstance(int(float(self.AngleIn.text())), int) or not isinstance(float(self.AngleIn.text()), float )) and bool(self.AngleIn.text()):
             angle = -1
         elif bool(self.AngleIn.text()):
-            angle = int(self.AngleIn.text())
-        if (not(self.FOV_H_In.text().isnumeric()) and (bool(self.FOV_H_In.text()))):
+            angle = float(self.AngleIn.text())
+        
+        if ( not isinstance(int(float(self.FOV_H_In.text())), int) or not isinstance(float(self.FOV_H_In.text()), float) ) and bool(self.FOV_H_In.text()):
             fov_h = -1
         elif bool(self.FOV_H_In.text()):
-            fov_h = int(self.FOV_H_In.text())
+            fov_h = float(self.FOV_H_In.text())
 
-        if (not(self.FOV_V_In.text().isnumeric()) and (bool(self.FOV_V_In.text()))):
+        if ( not isinstance(int(float(self.FOV_V_In.text())), int) or not isinstance(float(self.FOV_V_In.text()), float) ) and bool(self.FOV_V_In.text()):
             fov_v = -1
         elif bool(self.FOV_V_In.text()):
-            fov_v = int(self.FOV_V_In.text())
+            fov_v = float(self.FOV_V_In.text())
 
         #Test valuess
         #print ("%d, %d, %d, %d\n", height, angle, fov_v, fov_h)
 
         #If a INVLAID value, throw a pop up error message
         #Else link code below
-        if(height < 0 or height > 200 or angle < 0 or angle > 90
-         or fov_h < 0 or fov_h >359 or fov_v < 0 or fov_v > 359):
+        if(height < 0.0 or height > 200.0 or angle < 0.0 or angle > 90.0  or \
+           fov_h  < 0.0 or fov_h  > 359.0 or fov_v < 0.0 or fov_v > 359.0 ):
             msg = QMessageBox()
             msg.setWindowTitle("ERROR")
             msg.setText("Invalid value(s) entered")
@@ -331,3 +330,5 @@ def start_gui():
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
+
+
