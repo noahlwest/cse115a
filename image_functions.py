@@ -250,3 +250,32 @@ def draw_text(frame, text, x_coord, y_coord, color):
     point = (x_coord, y_coord)
     cv2.putText(frame, text, point, cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
 
+
+def dist_on_foot(dis, frame, coord):
+    text = str(round(dis, 2))
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    bottomLeft = coord
+    fontScale = 1
+    fontColor = (255, 255, 255)
+    lineType = 2
+    cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
+
+
+def print_on_feet(boxes, confs, colors, class_ids, img):
+    indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
+    feet = get_feet_pos(boxes)
+    for i in range(len(boxes)):
+        if i in indexes:
+            if class_ids[i] == 0:
+                x1, y1 = feet[i]
+                x1 = int(x1)
+                y1 = int(y1)
+                dist_on_foot(distance_functions.find_distance(7.5, 60, 45, y1/720), img, (x1 - 20, y1))
+                print("Distance: ", distance_functions.find_distance(7.5, 60, 45, y1/720))
+
+def get_feet_pos(boxes):
+    feet_pos = []
+    for (left, top, right, bottom) in boxes:
+        feet_pos.append(((2 * left + right) / 2, bottom + top))
+    return feet_pos
+
