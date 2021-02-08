@@ -107,7 +107,8 @@ def display_number_of_people(num_people, frame):
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
 
 
-def start_human_detection_loop(height, angle, fov):
+def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots):
+    #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
     cap = start_videocapture("webcam", "none")
