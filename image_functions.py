@@ -120,9 +120,11 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         boxes_around_people = detect_people(frame)
         display_boxes(boxes_around_people, frame)
         vert_positions = get_people_base_pixel_location(boxes_around_people)
-        distances, lines = distance_functions.find_distances_between_positions(
-            vert_positions)
+        #distances, lines = distance_functions.find_distances_between_positions(vert_positions)
         numBoxes = len(boxes_around_people)
+
+
+
         # (function this)
         # for index, distance in enumerate(distances):
         #   if distance < 6ft
@@ -130,9 +132,16 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
 
         #print("Number of boxes: ", numBoxes)
 
-        height, width, channels = frame.shape
+        height_window, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
-        boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
+        boxes, confs, class_ids = get_box_dimensions(outputs, height_window, width)
+
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
+
+        print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
 
         key = cv2.waitKey(1)
@@ -224,12 +233,34 @@ def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
     feet = get_feet_pos(boxes)
     for i in range(len(boxes)):
         if i in indexes:
-            if class_ids[i] == 0:
+            #if class_ids[i] == 0:
                 x1, y1 = feet[i]
                 x1 = int(x1)
                 y1 = int(y1)
                 dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1/720), img, (x1 - 20, y1))
                 print("Distance: ", distance_functions.find_distance(7.5, 60, 45, y1/720))
+
+
+def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle, v_fov, h_fov):
+    # get "unique" boxes
+    indexes = np.ndarray.flatten(cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4))
+    print(indexes)
+
+    feet_pos = get_feet_pos(boxes)
+    new_feet = []
+
+    for i in indexes:
+        new_feet.append(feet_pos[i])
+
+    for i in range(len(new_feet)):
+        for j in range(i + 1, len(new_feet)):
+            (x1, y1) = new_feet[i]
+            (x2, y2) = new_feet[j]
+            dist1 = distance_functions.find_distance(height, angle, v_fov, y1 / 720)
+            dist2 = distance_functions.find_distance(height, angle, v_fov, y2 / 720)
+            dist = distance_functions.return_distance(new_feet[i], new_feet[j], v_fov, h_fov, angle, dist1, dist2)
+            draw_text(img, str(round(dist, 2)), int((abs(x1 + x2)/2)), int((abs(y1 + y2)/2)), colors[1])
+            draw_line(img, x1, y1, x2, y2, colors[1])
 
 
 def draw_labels(boxes, confs, colors, class_ids, classes, img):
@@ -278,6 +309,6 @@ def dist_on_foot(dis, frame, coord):
 def get_feet_pos(boxes):
     feet_pos = []
     for (left, top, right, bottom) in boxes:
-        feet_pos.append(((2 * left + right) / 2, bottom + top))
+        feet_pos.append((int((2 * left + right) / 2), int(bottom + top)))
     return feet_pos
 
