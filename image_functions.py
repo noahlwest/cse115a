@@ -61,18 +61,23 @@ def display_number_of_people(num_people, frame):
     fontColor = (255, 255, 255)
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
-def saveframe(filename, frame):
-   dirname = "ScreenShots"
+
+def saveframe(filename, dirname, frame):
+   if (dirname == ""):
+      finalpath = filename
+   else:
+      finalpath = dirname + "/" + filename
    try:
       os.mkdir(dirname)
    except OSError as error:
-      print("Directory already exists")
-   cv2.imwrite(dirname + "/" + filename, frame)
+      pass
+   cv2.imwrite(finalpath, frame)
 
 def start_human_detection_loop(height, angle, fov, needScreen, needAudio):
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
-    cap = start_videocapture("video_file", "newtest.mp4")
+    cap = start_videocapture("webcam", "none")
+    #cap = start_videocapture("video_file", "newtest.mp4")
     boxes_around_people = []
     myAudioFile = "audio.mp3"
     audioToPlay = "mpg123 " + myAudioFile
@@ -89,7 +94,7 @@ def start_human_detection_loop(height, angle, fov, needScreen, needAudio):
            # implement some more advanced stuff?
         if needScreen == True:
            print("Implement screenshot saving code here")
-           saveframe("output" + str(imgCount) + ".jpg", frame)
+           saveframe("output" + str(imgCount) + ".jpg", "Screenshots", frame)
            imgCount += 1
         #vert_positions = get_people_base_pixel_location(boxes)
         #distances, lines = distance_functions.find_distances_between_positions(
