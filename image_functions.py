@@ -160,6 +160,19 @@ def load_yolo():
         print(e)
 
     net = cv2.dnn.readNet(yolov3_weights, yolov3_cfg)
+
+    try: 
+        result = cv2.cuda.getCudaDeviceCount()
+        
+        if result > 0:
+            net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+            net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+        # else:
+        #     print("cuda not found")
+    except Exception as error:
+        print(error)
+
+
     classes = []
     with open("coco.names", "r") as f:
         classes = [line.strip() for line in f.readlines()]
