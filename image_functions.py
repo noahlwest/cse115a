@@ -120,15 +120,8 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         boxes_around_people = detect_people(frame)
         display_boxes(boxes_around_people, frame)
         vert_positions = get_people_base_pixel_location(boxes_around_people)
-        distances, lines = distance_functions.find_distances_between_positions(
-            vert_positions)
+        distances, lines = distance_functions.find_distances_between_positions(vert_positions)
         numBoxes = len(boxes_around_people)
-        # (function this)
-        # for index, distance in enumerate(distances):
-        #   if distance < 6ft
-        #       display_line_and_distance(lines[index], distance)
-
-        #print("Number of boxes: ", numBoxes)
 
         height, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
@@ -140,7 +133,6 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
             break
 
     cap.release()
-
     print("[+] Ending detection...")
 
 
@@ -169,6 +161,19 @@ def load_yolo():
         print(e)
 
     net = cv2.dnn.readNet(yolov3_weights, yolov3_cfg)
+
+    try: 
+        result = cv2.cuda.getCudaDeviceCount()
+        
+        if result > 0:
+            net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+            net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+        # else:
+        #     print("cuda not found")
+    except Exception as error:
+        print(error)
+
+
     classes = []
     with open("coco.names", "r") as f:
         classes = [line.strip() for line in f.readlines()]
