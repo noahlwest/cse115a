@@ -107,6 +107,18 @@ def display_number_of_people(num_people, frame):
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
 
 
+def saveframe(filename, dirname, frame):
+   if (dirname == ""):
+      finalpath = filename
+   else:
+      finalpath = dirname + "/" + filename
+   try:
+      os.mkdir(dirname)
+   except OSError as error:
+      pass
+   cv2.imwrite(finalpath, frame)
+
+
 def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots):
     #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
     print("[+] Human detection started")
@@ -126,6 +138,22 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         height, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
         boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
+
+        # #TODO: Move this to the appropriate place
+        # #Most likely a function that does everything regarding being too close
+        # #e.g. Draws a line, screenshots, plays audio if too close.
+        # #tooCloseHandler() or something?
+        # #if 2 people are too close together:
+        # if audioAlert == True:
+        #    print('\a')
+        #    # implement some more advanced stuff?
+        # if screenShots == True:
+        #    print("Implement screenshot saving code here")
+        #    saveframe("output" + str(imgCount) + ".jpg", "Screenshots", frame)
+        #    imgCount += 1
+        # #vert_positions = get_people_base_pixel_location(boxes)
+        # #distances, lines = distance_functions.find_distances_between_positions(
+        # #    vert_positions)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
 
         key = cv2.waitKey(1)
