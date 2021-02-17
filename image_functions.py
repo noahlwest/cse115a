@@ -191,7 +191,7 @@ def load_yolo():
     net = cv2.dnn.readNet(yolov3_weights, yolov3_cfg)
 
     try: 
-        result = cv2.cuda.getCudaDeviceCount()
+        result = cv2.cuda.getCudaEnabledDeviceCount()
         
         if result > 0:
             net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
