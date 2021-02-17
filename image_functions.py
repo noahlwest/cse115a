@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import distance_functions
 import os
-#import wget
+import wget
 
 COLOR_GREEN = (0, 255, 0)
 COLOR_RED = (0, 0, 255)
@@ -111,7 +111,6 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
     cap = start_videocapture("webcam", "none")
-    #cap = start_videocapture("video_file", "newtest.mp4")
     boxes_around_people = []
 
     while(True):
@@ -120,30 +119,28 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         boxes_around_people = detect_people(frame)
         display_boxes(boxes_around_people, frame)
         vert_positions = get_people_base_pixel_location(boxes_around_people)
-        distances, lines = distance_functions.find_distances_between_positions(
-            vert_positions)
+        distances, lines = distance_functions.find_distances_between_positions(vert_positions)
         numBoxes = len(boxes_around_people)
-        # (function this)
-        # for index, distance in enumerate(distances):
-        #   if distance < 6ft
-        #       display_line_and_distance(lines[index], distance)
-
-        #print("Number of boxes: ", numBoxes)
 
         height, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
         boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
-        #if 2 people are too close together:
-        if audioAlert == True:
-           print('\a')
-           # implement some more advanced stuff?
-        if screenShots == True:
-           print("Implement screenshot saving code here")
-           saveframe("output" + str(imgCount) + ".jpg", "Screenshots", frame)
-           imgCount += 1
-        #vert_positions = get_people_base_pixel_location(boxes)
-        #distances, lines = distance_functions.find_distances_between_positions(
-        #    vert_positions)
+
+        # #TODO: Move this to the appropriate place
+        # #Most likely a function that does everything regarding being too close
+        # #e.g. Draws a line, screenshots, plays audio if too close.
+        # #tooCloseHandler() or something?
+        # #if 2 people are too close together:
+        # if audioAlert == True:
+        #    print('\a')
+        #    # implement some more advanced stuff?
+        # if screenShots == True:
+        #    print("Implement screenshot saving code here")
+        #    saveframe("output" + str(imgCount) + ".jpg", "Screenshots", frame)
+        #    imgCount += 1
+        # #vert_positions = get_people_base_pixel_location(boxes)
+        # #distances, lines = distance_functions.find_distances_between_positions(
+        # #    vert_positions)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
 
         key = cv2.waitKey(1)
@@ -151,7 +148,6 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
             break
 
     cap.release()
-
     print("[+] Ending detection...")
 
 def load_yolo():
@@ -177,6 +173,19 @@ def load_yolo():
         print(e)
 
     net = cv2.dnn.readNet(yolov3_weights, yolov3_cfg)
+
+    try: 
+        result = cv2.cuda.getCudaDeviceCount()
+        
+        if result > 0:
+            net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+            net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+        # else:
+        #     print("cuda not found")
+    except Exception as error:
+        print(error)
+
+
     classes = []
     with open("coco.names", "r") as f:
         classes = [line.strip() for line in f.readlines()]
