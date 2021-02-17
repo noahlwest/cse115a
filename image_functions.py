@@ -6,7 +6,6 @@ import wget
 
 COLOR_GREEN = (0, 255, 0)
 COLOR_RED = (0, 0, 255)
-
 def init_opencv():
     cv2.startWindowThread()
 
@@ -41,7 +40,6 @@ def set_cap_height_and_width(cap, height, width):
     cap.set(HEIGHT_CONSTANT, height)
     cap.set(WIDTH_CONSTANT, width)
 
-
 def resize_frame(frame, width, height):
     cv2.resize(frame, (width, height))
 
@@ -70,7 +68,6 @@ def detect_people(frame):
 
     return locations_list
 
-
 def get_people_base_pixel_location(boxes):
     locations_list = []
     # for box in boxes:
@@ -79,12 +76,10 @@ def get_people_base_pixel_location(boxes):
     # return locations_list
     pass
 
-
 def get_person_base_pixel_location():
     # from 1-100 ideally
     # 50 is middle of camera
     return 50
-
 
 def display_number_of_people(num_people, frame):
     text = "Number of people detected = " + str(num_people)
@@ -95,24 +90,37 @@ def display_number_of_people(num_people, frame):
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
 
-def saveframe(filename, dirname, frame):
-   if (dirname == ""):
-      finalpath = filename
-   else:
-      finalpath = dirname + "/" + filename
-      try:
-         os.mkdir(dirname)
-      except OSError as error:
-         pass
-   cv2.imwrite(finalpath, frame)
+def createDir(dirname):
+   try:
+      os.mkdir(dirname)
+   except OSError as error:
+      pass
 
-def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots):
+def tooCloseHandler(distances, audioAlert, screenShots, screenShotsDir, frame, screenShotOut):
+   if True: # use distances to correctly determine violation
+      if audioAlert == True:
+         print('\a')
+         # implement some more advanced stuff?
+      if screenShots == True:
+         screenShotOut.write(frame)
+
+def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, screenShotsDir):
     #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
     cap = start_videocapture("webcam", "none")
     boxes_around_people = []
-
+    # setup screenshot stuff to save a video
+    # TODO: write a function to do this
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    filename = 'output.avi'
+    if (screenShotsDir == ''):
+       finalpath = filename
+    else:
+       finalpath = screenShotsDir + '/' + filename
+       createDir(screenShotsDir)
+    screenShotOut = cv2.VideoWriter(finalpath, fourcc, 20.0, (1280, 720))
+    
     while(True):
         ret, frame = cap.read()
 
@@ -121,33 +129,24 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         vert_positions = get_people_base_pixel_location(boxes_around_people)
         distances, lines = distance_functions.find_distances_between_positions(vert_positions)
         numBoxes = len(boxes_around_people)
-
+        
         height, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
         boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
-
+        
         # #TODO: Move this to the appropriate place
         # #Most likely a function that does everything regarding being too close
         # #e.g. Draws a line, screenshots, plays audio if too close.
         # #tooCloseHandler() or something?
-        # #if 2 people are too close together:
-        # if audioAlert == True:
-        #    print('\a')
-        #    # implement some more advanced stuff?
-        # if screenShots == True:
-        #    print("Implement screenshot saving code here")
-        #    saveframe("output" + str(imgCount) + ".jpg", "Screenshots", frame)
-        #    imgCount += 1
-        # #vert_positions = get_people_base_pixel_location(boxes)
-        # #distances, lines = distance_functions.find_distances_between_positions(
-        # #    vert_positions)
+        
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
-
+        tooCloseHandler(None, audioAlert, screenShots, screenShotsDir, frame, screenShotOut)
         key = cv2.waitKey(1)
         if key == 27:
             break
 
     cap.release()
+    screenShotOut.release()
     print("[+] Ending detection...")
 
 def load_yolo():
@@ -235,14 +234,20 @@ def get_box_dimensions(outputs, height, width):
 def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     feet = get_feet_pos(boxes)
+    distances = []
     for i in range(len(boxes)):
         if i in indexes:
             if class_ids[i] == 0:
                 x1, y1 = feet[i]
                 x1 = int(x1)
                 y1 = int(y1)
-                dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1/720), img, (x1 - 20, y1))
+                print("distance = ")
+                distance = distance_functions.find_distance(height, angle, fov_v, y1/720)
+                print(distance)
+                dist_on_foot(distance, img, (x1 - 20, y1))
+                distances.append(distance)
                 print("Distance: ", distance_functions.find_distance(7.5, 60, 45, y1/720))
+    return distances
 
 def draw_labels(boxes, confs, colors, class_ids, classes, img):
     # get "unique" boxes

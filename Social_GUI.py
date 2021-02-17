@@ -300,22 +300,23 @@ class Ui_MainWindow(object):
         #If no value entered keep the default
 
         # we can now accept float values instead of int only
-        if  ( not isinstance(int(float(self.HeightIn.text())), int) or not isinstance(float(self.HeightIn.text()), float)) and bool(self.HeightIn.text()):
+        print(bool(self.HeightIn.text()))
+        if  (bool(self.HeightIn.text()) and (not isinstance(int(float(self.HeightIn.text())), int) or not isinstance(float(self.HeightIn.text()), float))):
             height = -1
         elif bool( self.HeightIn.text() ):
             height = float(self.HeightIn.text())
         
-        if ( not isinstance(int(float(self.AngleIn.text())), int) or not isinstance(float(self.AngleIn.text()), float )) and bool(self.AngleIn.text()):
+        if (bool(self.AngleIn.text()) and (not isinstance(int(float(self.AngleIn.text())), int) or not isinstance(float(self.AngleIn.text()), float))):
             angle = -1
         elif bool(self.AngleIn.text()):
             angle = float(self.AngleIn.text())
         
-        if ( not isinstance(int(float(self.FOV_H_In.text())), int) or not isinstance(float(self.FOV_H_In.text()), float) ) and bool(self.FOV_H_In.text()):
+        if (bool(self.FOV_H_In.text()) and (not isinstance(int(float(self.FOV_H_In.text())), int) or not isinstance(float(self.FOV_H_In.text()), float))):
             fov_h = -1
         elif bool(self.FOV_H_In.text()):
             fov_h = float(self.FOV_H_In.text())
 
-        if ( not isinstance(int(float(self.FOV_V_In.text())), int) or not isinstance(float(self.FOV_V_In.text()), float) ) and bool(self.FOV_V_In.text()):
+        if (bool(self.FOV_V_In.text()) and (not isinstance(int(float(self.FOV_V_In.text())), int) or not isinstance(float(self.FOV_V_In.text()), float))):
             fov_v = -1
         elif bool(self.FOV_V_In.text()):
             fov_v = float(self.FOV_V_In.text())
@@ -336,7 +337,7 @@ class Ui_MainWindow(object):
         else:
             # MainWindow.showMinimized()
             img.init_opencv()
-            img.start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots)
+            img.start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, "screenShots")
             img.stop_opencv()
 
 def start_gui():
