@@ -7,21 +7,21 @@ def hello_world():
 
 def adjust_angle(angle, fov, vertical_position):
     bottom_angle = angle - (fov / 2)
-    final_angle = bottom_angle + ((vertical_position/100) * fov)
-    #any angle > 90 is an error or false detection
+    final_angle = bottom_angle + ((vertical_position / 100) * fov)
+    # any angle > 90 is an error or false detection
     return final_angle
 
 
 def adjust_angle_horz(fov, horz):
-
-    final_angle = ((horz/1280) * fov)
-    #any angle > 90 is an error or false detection
+    final_angle = ((horz / 1280) * fov)
+    # any angle > 90 is an error or false detection
     return final_angle
+
 
 def adjust_angle_vert(angle, fov, vertical_position):
     bottom_angle = angle - (fov / 2)
-    final_angle = bottom_angle + ((vertical_position/720) * fov)
-    #any angle > 90 is an error or false detection
+    final_angle = bottom_angle + ((vertical_position / 720) * fov)
+    # any angle > 90 is an error or false detection
     return final_angle
 
 
@@ -52,7 +52,6 @@ def distance_between_points(a_radial_dis, a_polar_ang, a_azimuthal_ang, b_radial
 
 
 def return_distance(xy_tuple1, xy_tuple2, v_fov, h_fov, angle, dist1, dist2):
-
     x1, y1 = xy_tuple1
     x2, y2 = xy_tuple2
     x1 = adjust_angle_horz(h_fov, x1)
