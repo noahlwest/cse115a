@@ -7,6 +7,8 @@ import wget
 HEIGHT_CONSTANT = 3
 WIDTH_CONSTANT = 4
 
+DISTANCE_VIOLATION = 6
+
 PIXEL_WIDTH = 1280
 PIXEL_HEIGHT = 720
 
@@ -95,11 +97,11 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         blob, outputs = detect_objects(frame, model, output_layers)
         boxes, confs, class_ids = get_box_dimensions(outputs, height_window, width)
 
-        draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
+        notify_bool = draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
         print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
 
-        # take screenshot if 6 feet broken
+        # video/sound if notifiy_bool is true.
 
         key = cv2.waitKey(1)
         if key == 27:
@@ -199,6 +201,7 @@ def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
 
 def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle, v_fov, h_fov):
     # get "unique" boxes
+    if_violation = False
     print("[+] Drawing lines")
     un_flatten_index = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
 
@@ -224,8 +227,12 @@ def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle,
             dist1 = distance_functions.find_distance(height, angle, v_fov, y1 / PIXEL_HEIGHT)
             dist2 = distance_functions.find_distance(height, angle, v_fov, y2 / PIXEL_HEIGHT)
             dist = distance_functions.return_distance(new_feet[i], new_feet[j], v_fov, h_fov, angle, dist1, dist2)
+            if dist < DISTANCE_VIOLATION :
+                if_violation = True
             draw_text(img, str(round(dist, 2)), int((abs(x1 + x2) / 2)), int((abs(y1 + y2) / 2)), colors[1])
             draw_line(img, x1, y1, x2, y2, colors[1])
+
+    return if_violation
 
 
 def draw_labels(boxes, confs, colors, class_ids, classes, img):
