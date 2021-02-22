@@ -28,11 +28,6 @@ def start_videocapture(source, location):
     print("Invalid starting configuration. Exiting.")
     exit(1)
 
-# Takes the result from GUI user decision on input source.
-# Defaults to 0 for default webcam as input.
-def get_videocapture_arg():
-    return 0
-
 def set_cap_height_and_width(cap, height, width):
     #3 == width, 4 == height
     HEIGHT_CONSTANT = 3
@@ -43,44 +38,6 @@ def set_cap_height_and_width(cap, height, width):
 def resize_frame(frame, width, height):
     cv2.resize(frame, (width, height))
 
-def display_boxes(boxes, frame):
-    for (xA, yA, xB, yB) in boxes:
-        point_one = (xA, yA)
-        point_two = (xB, yB)
-        color = (0, 255, 0)
-        line_width = 2
-        cv2.rectangle(frame, point_one, point_two, color, line_width)
-
-def detect_people(frame):
-    # Create a list of boxes, one for each person detected
-    locations_list = []
-
-    # some loop to yoink and analize frames
-    #print("[+] Simulated human found")
-    #vert_position = get_person_base_pixel_location()
-    #distance = distance_functions.find_distance(height, angle, fov, vert_position)
-    # [TODO] now compare this data against other humans with some function
-    #
-    #print("[+] Human distance found:", distance)
-    #
-    ##print("[+] Continue simulation...")
-    #print("[+] Ending detection...")
-
-    return locations_list
-
-def get_people_base_pixel_location(boxes):
-    locations_list = []
-    # for box in boxes:
-    #   location = get_person_base_pixel_location(box)
-    #   locations_list.append(location)
-    # return locations_list
-    pass
-
-def get_person_base_pixel_location():
-    # from 1-100 ideally
-    # 50 is middle of camera
-    return 50
-
 def display_number_of_people(num_people, frame):
     text = "Number of people detected = " + str(num_people)
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -90,19 +47,37 @@ def display_number_of_people(num_people, frame):
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
 
-def createDir(dirname):
+def create_dir(dirname):
    try:
       os.mkdir(dirname)
    except OSError as error:
       pass
 
-def tooCloseHandler(distances, audioAlert, screenShots, screenShotsDir, frame, screenShotOut):
-   if True: # use distances to correctly determine violation
+def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber, filename, fourcc):
+   if violation == True:
       if audioAlert == True:
          print('\a')
          # implement some more advanced stuff?
       if screenShots == True:
+         if screenShotOut == None:
+            screenShotOut = cv2.VideoWriter(filename + str(screenShotNumber) + ".avi"   , fourcc, 20.0, (1280, 720))
          screenShotOut.write(frame)
+   else:
+      if screenShotOut != None:
+         screenShotOut.release()
+         screenShotOut = None
+         screenShotNumber += 1
+   return screenShotOut, screenShotNumber
+
+def setupVideo(screenShotsDir):
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    filename = 'output'
+    if (screenShotsDir == ''):
+       finalpath = filename
+    else:
+       finalpath = screenShotsDir + '/' + filename
+       create_dir(screenShotsDir)
+    return finalpath, fourcc
 
 def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, screenShotsDir):
     #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
@@ -111,42 +86,34 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
     cap = start_videocapture("webcam", "none")
     boxes_around_people = []
     # setup screenshot stuff to save a video
-    # TODO: write a function to do this
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    filename = 'output.avi'
-    if (screenShotsDir == ''):
-       finalpath = filename
-    else:
-       finalpath = screenShotsDir + '/' + filename
-       createDir(screenShotsDir)
-    screenShotOut = cv2.VideoWriter(finalpath, fourcc, 20.0, (1280, 720))
-    
+    filename, fourcc = setupVideo(screenShotsDir)
+    screenShotOut = None
+    violations = []
+    for i in range(25):
+       violations.append(True)
+    for i in range(25):
+       violations.append(False)
+    for i in range(25):
+       violations.append(True)
+    index = 0
+    screenShotNumber = 0
     while(True):
-        ret, frame = cap.read()
-
-        boxes_around_people = detect_people(frame)
-        display_boxes(boxes_around_people, frame)
-        vert_positions = get_people_base_pixel_location(boxes_around_people)
-        distances, lines = distance_functions.find_distances_between_positions(vert_positions)
-        numBoxes = len(boxes_around_people)
-        
-        height, width, channels = frame.shape
-        blob, outputs = detect_objects(frame, model, output_layers)
-        boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
-        
-        # #TODO: Move this to the appropriate place
-        # #Most likely a function that does everything regarding being too close
-        # #e.g. Draws a line, screenshots, plays audio if too close.
-        # #tooCloseHandler() or something?
-        
-        draw_labels(boxes, confs, colors, class_ids, classes, frame)
-        tooCloseHandler(None, audioAlert, screenShots, screenShotsDir, frame, screenShotOut)
-        key = cv2.waitKey(1)
-        if key == 27:
-            break
+       ret, frame = cap.read()
+       
+       height, width, channels = frame.shape
+       blob, outputs = detect_objects(frame, model, output_layers)
+       boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
+       
+       draw_labels(boxes, confs, colors, class_ids, classes, frame)
+       screenShotOut, screenShotNumber = too_close_handler(violations[index], audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber, filename, fourcc)
+       key = cv2.waitKey(1)
+       index += 1
+       if key == 27 or index >= 75:
+          break
 
     cap.release()
-    screenShotOut.release()
+    if screenShotOut != None:
+       screenShotOut.release()
     print("[+] Ending detection...")
 
 def load_yolo():

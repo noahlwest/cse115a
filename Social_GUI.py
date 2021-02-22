@@ -6,7 +6,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QImage, QPalette, QBrush
 
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -30,8 +29,6 @@ class Ui_MainWindow(object):
         palette.setBrush(QPalette.Window, QBrush(Image))
         MainWindow.setPalette(palette)
 
-
-
         # Choose One Title
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -44,7 +41,6 @@ class Ui_MainWindow(object):
         self.ChooseTitle.setObjectName("ChooseTitle")
         self.ChooseTitle.setStyleSheet("color: #E7E7E7;")
 
-
         #Webcam Option
         self.WebCam = QtWidgets.QRadioButton(self.centralwidget)
         self.WebCam.setGeometry(QtCore.QRect(240, 140, 121, 17))
@@ -56,7 +52,6 @@ class Ui_MainWindow(object):
         self.WebCam.setChecked(True)
         self.WebCam.setStyleSheet("color: #E7E7E7;")
 
-
         #Video Option
         self.Video = QtWidgets.QRadioButton(self.centralwidget)
         self.Video.setGeometry(QtCore.QRect(240, 160, 82, 17))
@@ -66,7 +61,6 @@ class Ui_MainWindow(object):
         self.Video.setFont(font)
         self.Video.setObjectName("Video")
         self.Video.setStyleSheet("color: #E7E7E7;")
-
 
         #Social Distance Detector Title
         self.Title = QtWidgets.QLabel(self.centralwidget)
@@ -78,13 +72,11 @@ class Ui_MainWindow(object):
         self.Title.setObjectName("Title")
         self.Title.setStyleSheet("color: #E7E7E7;")
 
-
         #Height input box
         self.HeightIn = QtWidgets.QLineEdit(self.centralwidget)
         self.HeightIn.setGeometry(QtCore.QRect(10, 140, 113, 20))
         self.HeightIn.setObjectName("HeightIn")
         self.HeightIn.setPlaceholderText("9 (DEFAULT)")
-
         self.HeightIn.setStyleSheet(
                                     "border :2px solid #555;"
                                     "border-top-left-radius :35px;"
@@ -151,7 +143,6 @@ class Ui_MainWindow(object):
         self.HeightTitle.setObjectName("HeightTitle")
         self.HeightTitle.setStyleSheet("color: #E7E7E7;")
        
-
         #Angle Title
         self.AngleTitle = QtWidgets.QLabel(self.centralwidget)
         self.AngleTitle.setGeometry(QtCore.QRect(10, 170, 101, 21))
@@ -172,7 +163,6 @@ class Ui_MainWindow(object):
         self.FOV_H_Title.setObjectName("FOV_H_Title")
         self.FOV_H_Title.setStyleSheet("color: #E7E7E7;")
 
-
         #Field of View Ver Title
         self.FOV_V_Title = QtWidgets.QLabel(self.centralwidget)
         self.FOV_V_Title.setGeometry(QtCore.QRect(10, 290, 131, 40))
@@ -183,7 +173,6 @@ class Ui_MainWindow(object):
         self.FOV_V_Title.setObjectName("FOV_V_Title")
         self.FOV_V_Title.setStyleSheet("color: #E7E7E7;")
 
-
         #Distance Options title
         self.DistanceTitle = QtWidgets.QLabel(self.centralwidget)
         self.DistanceTitle.setGeometry(QtCore.QRect(240, 220, 131, 26))
@@ -193,7 +182,6 @@ class Ui_MainWindow(object):
         self.DistanceTitle.setFont(font)
         self.DistanceTitle.setObjectName("DistanceTitle")
         self.DistanceTitle.setStyleSheet("color: #E7E7E7;")
-
 
         #Audio Alert Check Box
         self.AudioCheck = QtWidgets.QCheckBox(self.centralwidget)
@@ -215,7 +203,6 @@ class Ui_MainWindow(object):
         self.ScreenCheck.setFont(font)
         self.ScreenCheck.setObjectName("ScreenCheck")
         self.ScreenCheck.setStyleSheet("color: #E7E7E7;")
-
 
         #Start Button
         self.StartButton = QtWidgets.QPushButton(self.centralwidget)
@@ -321,7 +308,7 @@ class Ui_MainWindow(object):
         elif bool(self.FOV_V_In.text()):
             fov_v = float(self.FOV_V_In.text())
 
-        #Test valuess
+        #Test values
         #print ("%d, %d, %d, %d\n", height, angle, fov_v, fov_h)
 
         #If a INVLAID value, throw a pop up error message
