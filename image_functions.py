@@ -3,7 +3,7 @@ import numpy as np
 import distance_functions
 import os
 import wget
-
+import time
 COLOR_GREEN = (0, 255, 0)
 COLOR_RED = (0, 0, 255)
 def init_opencv():
@@ -79,6 +79,9 @@ def setupVideo(screenShotsDir):
        create_dir(screenShotsDir)
     return finalpath, fourcc
 
+def getTime():
+   return time.asctime( time.localtime(time.time()) )
+
 def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, screenShotsDir):
     #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
     print("[+] Human detection started")
@@ -88,6 +91,7 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
     # setup screenshot stuff to save a video
     filename, fourcc = setupVideo(screenShotsDir)
     screenShotOut = None
+    # test code for too_close_handler to handle "sets" of violations
     violations = []
     for i in range(25):
        violations.append(True)
@@ -104,10 +108,13 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
        blob, outputs = detect_objects(frame, model, output_layers)
        boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
        
+       draw_text(frame, getTime(), 0, 25, COLOR_GREEN)
        draw_labels(boxes, confs, colors, class_ids, classes, frame)
        screenShotOut, screenShotNumber = too_close_handler(violations[index], audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber, filename, fourcc)
-       key = cv2.waitKey(1)
        index += 1
+       key = cv2.waitKey(1)
+       #if key == 27:
+       #   break
        if key == 27 or index >= 75:
           break
 
