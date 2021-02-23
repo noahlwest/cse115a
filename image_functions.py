@@ -3,6 +3,7 @@ import numpy as np
 import distance_functions
 import os
 import wget
+import time
 
 HEIGHT_CONSTANT = 3
 WIDTH_CONSTANT = 4
@@ -23,11 +24,9 @@ def hello_world():
 def init_opencv():
     cv2.startWindowThread()
 
-
 def stop_opencv():
     cv2.destroyAllWindows()
     cv2.waitKey(1)
-
 
 def start_videocapture(source, location):
     print("[+] Getting Video feed")
@@ -47,32 +46,12 @@ def start_videocapture(source, location):
     print("Invalid starting configuration. Exiting.")
     exit(1)
 
-
-# Takes the result from GUI user decision on input source.
-# Defaults to 0 for default webcam as input.
-
-
-def get_videocapture_arg():
-    return 0
-
-
 def set_cap_height_and_width(cap, height, width):
     cap.set(HEIGHT_CONSTANT, height)
     cap.set(WIDTH_CONSTANT, width)
 
-
 def resize_frame(frame, width, height):
     cv2.resize(frame, (width, height))
-
-
-def display_boxes(boxes, frame):
-    for (xA, yA, xB, yB) in boxes:
-        point_one = (xA, yA)
-        point_two = (xB, yB)
-        color = (0, 255, 0)
-        line_width = 2
-        cv2.rectangle(frame, point_one, point_two, color, line_width)
-
 
 def display_number_of_people(num_people, frame):
     text = "Number of people detected = " + str(num_people)
@@ -83,50 +62,86 @@ def display_number_of_people(num_people, frame):
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
 
-
-def saveframe(filename, dirname, frame):
-   if (dirname == ""):
-      finalpath = filename
-   else:
-      finalpath = dirname + "/" + filename
+def create_dir(dirname):
    try:
       os.mkdir(dirname)
    except OSError as error:
       pass
-   cv2.imwrite(finalpath, frame)
 
+def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber, filename, fourcc):
+   if violation == True:
+      if audioAlert == True:
+         print('\a')
+         # no cooldown means this has the possibility to beep every frame (24/30/60 times a second?) - probably could do better
+         # implement some more advanced stuff?
+      if screenShots == True:
+         if screenShotOut == None:
+            screenShotOut = cv2.VideoWriter(filename + str(screenShotNumber) + ".avi"   , fourcc, 20.0, (1280, 720))
+         screenShotOut.write(frame)
+   else:
+      if screenShotOut != None:
+         screenShotOut.release()
+         screenShotOut = None
+         screenShotNumber += 1
+   return screenShotOut, screenShotNumber
 
-def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots):
-    # TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
+def setupVideo(screenShotsDir):
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    filename = 'output'
+    if (screenShotsDir == ''):
+       finalpath = filename
+    else:
+       finalpath = screenShotsDir + '/' + filename
+       create_dir(screenShotsDir)
+    return finalpath, fourcc
+
+def getTime():
+   return time.asctime( time.localtime(time.time()) )
+
+def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots): #,screenShotsDir): #temp removed, because GUI doesn't have it yet.
+    screenShotsDir = os.getcwd()
+    screenShotsDir += "\\screenshots"
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
     cap = start_videocapture("webcam", "none")
-
-    while True:
+    # setup screenshot stuff to save a video
+    filename, fourcc = setupVideo(screenShotsDir)
+    screenShotOut = None
+    # test code for too_close_handler to handle "sets" of violations
+    violations = []
+    for i in range(25):
+       violations.append(True)
+    for i in range(25):
+       violations.append(False)
+    for i in range(25):
+       violations.append(True)
+    index = 0
+    screenShotNumber = 0
+    while(True):
         ret, frame = cap.read()
-
+        
         height_window, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
         boxes, confs, class_ids = get_box_dimensions(outputs, height_window, width)
-
+        
         notify_bool = draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
         print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
+        draw_text(frame, getTime(), 0, 25, COLOR_GREEN)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
-
-        # video/sound if notifiy_bool is true.
-
+        screenShotOut, screenShotNumber = too_close_handler(violations[index], audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber, filename, fourcc)
+        index += 1
         key = cv2.waitKey(1)
         if key == 27:
-            break
+           break
 
     cap.release()
+    if screenShotOut != None:
+       screenShotOut.release()
     print("[+] Ending detection...")
-
 
 def load_yolo():
     yolov3_weights = ""
     yolov3_cfg = ""
-
     try:
 
         yolov3_weights = os.getcwd()
@@ -179,7 +194,6 @@ def load_yolo():
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
     return net, classes, colors, output_layers
 
-
 def display_blob(blob):
     '''
             Three images each for RED, GREEN, BLUE channel
@@ -188,14 +202,12 @@ def display_blob(blob):
         for n, imgb in enumerate(b):
             cv2.imshow(str(n), imgb)
 
-
 def detect_objects(img, net, outputLayers):
     blob = cv2.dnn.blobFromImage(img, scalefactor=0.00392, size=(
         320, 320), mean=(0, 0, 0), swapRB=True, crop=False)
     net.setInput(blob)
     outputs = net.forward(outputLayers)
     return blob, outputs
-
 
 def get_box_dimensions(outputs, height, width):
     boxes = []
@@ -218,10 +230,10 @@ def get_box_dimensions(outputs, height, width):
                 class_ids.append(class_id)
     return boxes, confs, class_ids
 
-
 def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     feet = get_feet_pos(boxes)
+    distances = []
     for i in range(len(boxes)):
         if i in indexes:
             # if class_ids[i] == 0:
@@ -283,23 +295,19 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
                 color = colors[i]
                 cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
                 cv2.putText(img, label, (x, y - 5), font, 1, color, 1)
-
     display_number_of_people(counter, img)
     cv2.imshow("Press 'esc' to exit", img)
 
     return counter
-
 
 def draw_line(frame, xA, yA, xB, yB, color):
     point_one = (xA, yA)
     point_two = (xB, yB)
     cv2.line(frame, point_one, point_two, color, thickness=2)
 
-
 def draw_text(frame, text, x_coord, y_coord, color):
     point = (x_coord, y_coord)
     cv2.putText(frame, text, point, cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-
 
 def dist_on_foot(dis, frame, coord):
     text = str(round(dis, 2))
@@ -309,7 +317,6 @@ def dist_on_foot(dis, frame, coord):
     fontColor = (255, 255, 255)
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
-
 
 def get_feet_pos(boxes):
     feet_pos = []
