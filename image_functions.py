@@ -128,21 +128,30 @@ def load_yolo():
     yolov3_cfg = ""
 
     try:
+
         yolov3_weights = os.getcwd()
         yolov3_weights += "\\yolov3.weights"
 
         yolov3_cfg = os.getcwd()
         yolov3_cfg += "\\yolov3.cfg"
-
-        if not os.path.exists(yolov3_weights) or not os.path.exists(yolov3_cfg):
-            print(f"file path to {yolov3_weights} or {yolov3_cfg} not found")
+        
+        if not os.path.exists(yolov3_weights):
+            print(f"file path to {yolov3_weights} not found")
             print("Attempting to download yolov3.weights (250MB)...")
 
-            # url = "https://pjreddie.com/media/files/yolov3.weights" #official source
-            url = "https://www.dropbox.com/s/xb3n2zycopf4zte/yolov3.weights?dl=1"  # our own dropbox link
+            #url = "https://pjreddie.com/media/files/yolov3.weights" #official source
+            url = "https://www.dropbox.com/s/xb3n2zycopf4zte/yolov3.weights?dl=1" # our own dropbox link
             wget.download(url)
-
             print("\nSuccesfully downloaded yolov3.weights")
+        
+        if not os.path.exists(yolov3_cfg):
+            print(f"file path to {yolov3_cfg} not found")
+            print("Attempting to download yolov3.cfg...")
+
+            url = "https://raw.githubusercontent.com/noahlwest/cse115a/master/yolov3.cfg" # our github
+            wget.download(url)
+            print("\nSuccesfully downloaded yolov3.cfg")            
+
     except Exception as e:
         print(e)
 
