@@ -4,9 +4,19 @@ import distance_functions
 import os
 import wget
 import time
+
+HEIGHT_CONSTANT = 3
+WIDTH_CONSTANT = 4
+
+DISTANCE_VIOLATION = 6
+
+PIXEL_WIDTH = 1280
+PIXEL_HEIGHT = 720
+
 COLOR_GREEN = (0, 255, 0)
 COLOR_RED = (0, 0, 255)
 VIOLATION_WAIT = 12
+
 def init_opencv():
     cv2.startWindowThread()
 
@@ -15,13 +25,16 @@ def stop_opencv():
     cv2.waitKey(1)
 
 def start_videocapture(source, location):
+    print("[+] Getting Video feed")
     if source == "webcam":
         cap = cv2.VideoCapture(0)  # starts on default webcam
-        set_cap_height_and_width(cap, 1280, 720)
+        set_cap_height_and_width(cap, PIXEL_WIDTH, PIXEL_HEIGHT)
+        print("[+] Webcam set-up")
         return cap
     if source == "video_file":
         cap = cv2.VideoCapture(location)
-        set_cap_height_and_width(cap, 1280, 720)
+        set_cap_height_and_width(cap, PIXEL_WIDTH, PIXEL_HEIGHT)
+        print("[+] Video File set-up")
         return cap
     # TODO: add video stream as possible source
 
@@ -30,9 +43,6 @@ def start_videocapture(source, location):
     exit(1)
 
 def set_cap_height_and_width(cap, height, width):
-    #3 == width, 4 == height
-    HEIGHT_CONSTANT = 3
-    WIDTH_CONSTANT = 4
     cap.set(HEIGHT_CONSTANT, height)
     cap.set(WIDTH_CONSTANT, width)
 
@@ -59,6 +69,7 @@ def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame,
       violCounter = 0
       if audioAlert == True:
          print('\a')
+         # no cooldown means this has the possibility to beep every frame (24/30/60 times a second?) - probably could do better
          # implement some more advanced stuff?
       if screenShots == True:
          if screenShotOut == None:
@@ -86,12 +97,12 @@ def setupVideo(screenShotsDir):
 def getTime():
    return time.asctime( time.localtime(time.time()) )
 
-def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, screenShotsDir):
-    #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
+def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots): #,screenShotsDir): #temp removed, because GUI doesn't have it yet.
+    screenShotsDir = os.getcwd()
+    screenShotsDir += "\\screenshots"
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
     cap = start_videocapture("webcam", "none")
-    boxes_around_people = []
     # setup screenshot stuff to save a video
     filename, fourcc = setupVideo(screenShotsDir)
     vidout = None
@@ -107,23 +118,22 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
     vidnumber = 0
     violCounter = 0
     while(True):
-       ret, frame = cap.read()
-       
-       height, width, channels = frame.shape
-       blob, outputs = detect_objects(frame, model, output_layers)
-       boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
-       
-       draw_text(frame, getTime(), 0, 25, COLOR_GREEN)
-       #draw_text(frame, str(index), 800, 25, COLOR_GREEN)
-       draw_labels(boxes, confs, colors, class_ids, classes, frame)
-       vidout, vidnumber, violCounter = too_close_handler(violations[index], audioAlert, screenShots, screenShotsDir, frame, vidout,
+        ret, frame = cap.read()
+        
+        height_window, width, channels = frame.shape
+        blob, outputs = detect_objects(frame, model, output_layers)
+        boxes, confs, class_ids = get_box_dimensions(outputs, height_window, width)
+        
+        notify_bool = draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
+        print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
+        draw_text(frame, getTime(), 0, 25, COLOR_GREEN)
+        draw_labels(boxes, confs, colors, class_ids, classes, frame)
+        vidout, vidnumber, violCounter = too_close_handler(violations[index], audioAlert, screenShots, screenShotsDir, frame, vidout,
                                                           vidnumber, filename, fourcc, violCounter)
-       index += 1
-       key = cv2.waitKey(1)
-       #if key == 27:
-       #   break
-       if key == 27 or index >= len(violations):
-          break
+        index += 1
+        key = cv2.waitKey(1)
+        if key == 27:
+           break
 
     cap.release()
     if vidout != None:
@@ -134,28 +144,37 @@ def load_yolo():
     yolov3_weights = ""
     yolov3_cfg = ""
     try:
+
         yolov3_weights = os.getcwd()
         yolov3_weights += "\\yolov3.weights"
 
         yolov3_cfg = os.getcwd()
         yolov3_cfg += "\\yolov3.cfg"
         
-        if not os.path.exists(yolov3_weights) or not os.path.exists(yolov3_cfg):
-            print(f"file path to {yolov3_weights} or {yolov3_cfg} not found")
+        if not os.path.exists(yolov3_weights):
+            print(f"file path to {yolov3_weights} not found")
             print("Attempting to download yolov3.weights (250MB)...")
 
             #url = "https://pjreddie.com/media/files/yolov3.weights" #official source
-            url = "https://www.dropbox.com/s/xb3n2zycopf4zte/yolov3.weights?dl=1" #our own dropbox link
-            #wget.download(url)
-
+            url = "https://www.dropbox.com/s/xb3n2zycopf4zte/yolov3.weights?dl=1" # our own dropbox link
+            wget.download(url)
             print("\nSuccesfully downloaded yolov3.weights")
+        
+        if not os.path.exists(yolov3_cfg):
+            print(f"file path to {yolov3_cfg} not found")
+            print("Attempting to download yolov3.cfg...")
+
+            url = "https://raw.githubusercontent.com/noahlwest/cse115a/master/yolov3.cfg" # our github
+            wget.download(url)
+            print("\nSuccesfully downloaded yolov3.cfg")            
+
     except Exception as e:
         print(e)
 
     net = cv2.dnn.readNet(yolov3_weights, yolov3_cfg)
 
     try: 
-        result = cv2.cuda.getCudaDeviceCount()
+        result = cv2.cuda.getCudaEnabledDeviceCount()
         
         if result > 0:
             net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
@@ -171,7 +190,7 @@ def load_yolo():
         classes = [line.strip() for line in f.readlines()]
 
     layers_names = net.getLayerNames()
-    output_layers = [layers_names[i[0]-1]
+    output_layers = [layers_names[i[0] - 1]
                      for i in net.getUnconnectedOutLayers()]
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
     return net, classes, colors, output_layers
@@ -205,7 +224,7 @@ def get_box_dimensions(outputs, height, width):
                 center_y = int(detect[1] * height)
                 w = int(detect[2] * width)
                 h = int(detect[3] * height)
-                x = int(center_x - w/2)
+                x = int(center_x - w / 2)
                 y = int(center_y - h / 2)
                 boxes.append([x, y, w, h])
                 confs.append(float(conf))
@@ -218,17 +237,49 @@ def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
     distances = []
     for i in range(len(boxes)):
         if i in indexes:
-            if class_ids[i] == 0:
-                x1, y1 = feet[i]
-                x1 = int(x1)
-                y1 = int(y1)
-                print("distance = ")
-                distance = distance_functions.find_distance(height, angle, fov_v, y1/720)
-                print(distance)
-                dist_on_foot(distance, img, (x1 - 20, y1))
-                distances.append(distance)
-                print("Distance: ", distance_functions.find_distance(7.5, 60, 45, y1/720))
-    return distances
+            # if class_ids[i] == 0:
+            x1, y1 = feet[i]
+            x1 = int(x1)
+            y1 = int(y1)
+            dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img, (x1 - 20, y1))
+            print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
+
+
+def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle, v_fov, h_fov):
+    # get "unique" boxes
+    if_violation = False
+    print("[+] Drawing lines")
+    un_flatten_index = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
+
+    if isinstance(un_flatten_index, tuple):
+        return
+
+    indexes = np.ndarray.flatten(un_flatten_index)
+    feet_pos = get_feet_pos(boxes)
+    new_feet = []
+
+    for i in indexes:
+        if class_ids[i] == 0:
+            new_feet.append(feet_pos[i])
+
+    for i in range(len(new_feet)):
+        for j in range(i + 1, len(new_feet)):
+
+            if class_ids[i] != 0 or class_ids[j] != 0:
+                continue
+
+            (x1, y1) = new_feet[i]
+            (x2, y2) = new_feet[j]
+            dist1 = distance_functions.find_distance(height, angle, v_fov, y1 / PIXEL_HEIGHT)
+            dist2 = distance_functions.find_distance(height, angle, v_fov, y2 / PIXEL_HEIGHT)
+            dist = distance_functions.return_distance(new_feet[i], new_feet[j], v_fov, h_fov, angle, dist1, dist2)
+            if dist < DISTANCE_VIOLATION :
+                if_violation = True
+            draw_text(img, str(round(dist, 2)), int((abs(x1 + x2) / 2)), int((abs(y1 + y2) / 2)), colors[1])
+            draw_line(img, x1, y1, x2, y2, colors[1])
+
+    return if_violation
+
 
 def draw_labels(boxes, confs, colors, class_ids, classes, img):
     # get "unique" boxes
@@ -243,7 +294,7 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
                 x, y, w, h = boxes[i]
                 label = str(classes[class_ids[i]])
                 color = colors[i]
-                cv2.rectangle(img, (x, y), (x+w, y+h), color, 2)
+                cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
                 cv2.putText(img, label, (x, y - 5), font, 1, color, 1)
     display_number_of_people(counter, img)
     cv2.imshow("Press 'esc' to exit", img)
@@ -271,6 +322,5 @@ def dist_on_foot(dis, frame, coord):
 def get_feet_pos(boxes):
     feet_pos = []
     for (left, top, right, bottom) in boxes:
-        feet_pos.append(((2 * left + right) / 2, bottom + top))
+        feet_pos.append((int((2 * left + right) / 2), int(bottom + top)))
     return feet_pos
-
