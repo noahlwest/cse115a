@@ -6,6 +6,7 @@ import wget
 import time
 COLOR_GREEN = (0, 255, 0)
 COLOR_RED = (0, 0, 255)
+VIOLATION_WAIT = 12
 def init_opencv():
     cv2.startWindowThread()
 
@@ -53,8 +54,9 @@ def create_dir(dirname):
    except OSError as error:
       pass
 
-def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber, filename, fourcc):
+def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber, filename, fourcc, violCounter):
    if violation == True:
+      violCounter = 0
       if audioAlert == True:
          print('\a')
          # implement some more advanced stuff?
@@ -63,11 +65,13 @@ def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame,
             screenShotOut = cv2.VideoWriter(filename + str(screenShotNumber) + ".avi"   , fourcc, 20.0, (1280, 720))
          screenShotOut.write(frame)
    else:
-      if screenShotOut != None:
+      screenShotOut.write(frame)
+      violCounter += 1
+      if violCounter >= VIOLATION_WAIT and screenShotOut != None:
          screenShotOut.release()
          screenShotOut = None
          screenShotNumber += 1
-   return screenShotOut, screenShotNumber
+   return screenShotOut, screenShotNumber, violCounter
 
 def setupVideo(screenShotsDir):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -90,17 +94,18 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
     boxes_around_people = []
     # setup screenshot stuff to save a video
     filename, fourcc = setupVideo(screenShotsDir)
-    screenShotOut = None
+    vidout = None
     # test code for too_close_handler to handle "sets" of violations
     violations = []
     for i in range(25):
        violations.append(True)
-    for i in range(25):
+    for i in range(12):
        violations.append(False)
     for i in range(25):
        violations.append(True)
     index = 0
-    screenShotNumber = 0
+    vidnumber = 0
+    violCounter = 0
     while(True):
        ret, frame = cap.read()
        
@@ -109,18 +114,20 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
        boxes, confs, class_ids = get_box_dimensions(outputs, height, width)
        
        draw_text(frame, getTime(), 0, 25, COLOR_GREEN)
+       #draw_text(frame, str(index), 800, 25, COLOR_GREEN)
        draw_labels(boxes, confs, colors, class_ids, classes, frame)
-       screenShotOut, screenShotNumber = too_close_handler(violations[index], audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber, filename, fourcc)
+       vidout, vidnumber, violCounter = too_close_handler(violations[index], audioAlert, screenShots, screenShotsDir, frame, vidout,
+                                                          vidnumber, filename, fourcc, violCounter)
        index += 1
        key = cv2.waitKey(1)
        #if key == 27:
        #   break
-       if key == 27 or index >= 75:
+       if key == 27 or index >= len(violations):
           break
 
     cap.release()
-    if screenShotOut != None:
-       screenShotOut.release()
+    if vidout != None:
+       vidout.release()
     print("[+] Ending detection...")
 
 def load_yolo():
