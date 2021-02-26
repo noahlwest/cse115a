@@ -138,12 +138,12 @@ class MainWindow(QMainWindow):
             UIFunctions.labelPage(self, "Home")
             btnWidget.setStyleSheet(UIFunctions.selectMenu(btnWidget.styleSheet()))
 
-        # PAGE NEW USER
-        if btnWidget.objectName() == "btn_new_user":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.page_home)
-            UIFunctions.resetStyle(self, "btn_new_user")
-            UIFunctions.labelPage(self, "New User")
-            btnWidget.setStyleSheet(UIFunctions.selectMenu(btnWidget.styleSheet()))
+        # # PAGE NEW USER
+        # if btnWidget.objectName() == "btn_new_user":
+        #     self.ui.stackedWidget.setCurrentWidget(self.ui.page_home)
+        #     UIFunctions.resetStyle(self, "btn_new_user")
+        #     UIFunctions.labelPage(self, "New User")
+        #     btnWidget.setStyleSheet(UIFunctions.selectMenu(btnWidget.styleSheet()))
 
         # PAGE WIDGETS
         if btnWidget.objectName() == "btn_widgets":
@@ -170,11 +170,14 @@ class MainWindow(QMainWindow):
     def mousePressEvent(self, event):
         self.dragPos = event.globalPos()
         if event.buttons() == Qt.LeftButton:
-            print('Mouse click: LEFT CLICK')
+            # print('Mouse click: LEFT CLICK')
+            pass
         if event.buttons() == Qt.RightButton:
-            print('Mouse click: RIGHT CLICK')
+            # print('Mouse click: RIGHT CLICK')
+            pass
         if event.buttons() == Qt.MidButton:
-            print('Mouse click: MIDDLE BUTTON')
+            # print('Mouse click: MIDDLE BUTTON')
+            pass
     ## ==> END ##
 
     ## EVENT ==> KEY PRESSED

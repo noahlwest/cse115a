@@ -1,9 +1,9 @@
+# import sys
 import platform
 from PySide2 import QtCore, QtGui, QtWidgets
 # from PySide2.QtCore import (QCoreApplication, QPropertyAnimation, QDate, QDateTime, QMetaObject, QObject, QPoint, QRect, QSize, QTime, QUrl, Qt, QEvent)
 # from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont, QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter, QPixmap, QRadialGradient)
 from PySide2.QtWidgets import *
-# import sys
 import image_functions as img
 import files_rc
 
@@ -14,9 +14,13 @@ class Ui_MainWindow(object):
 
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(953, 836)
+        
         palette = QtGui.QPalette()
+        
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
         brush.setStyle(QtCore.Qt.SolidPattern)
+
+
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.WindowText, brush)
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
