@@ -17,12 +17,17 @@ COLOR_GREEN = (0, 255, 0)
 COLOR_RED = (0, 0, 255)
 VIOLATION_WAIT = 6
 
+SECONDS_VIOLATION = 10
+
+
 def init_opencv():
     cv2.startWindowThread()
+
 
 def stop_opencv():
     cv2.destroyAllWindows()
     cv2.waitKey(1)
+
 
 def start_videocapture(source, location):
     print("[+] Getting Video feed")
@@ -42,12 +47,15 @@ def start_videocapture(source, location):
     print("Invalid starting configuration. Exiting.")
     exit(1)
 
+
 def set_cap_height_and_width(cap, height, width):
     cap.set(HEIGHT_CONSTANT, height)
     cap.set(WIDTH_CONSTANT, width)
 
+
 def resize_frame(frame, width, height):
     cv2.resize(frame, (width, height))
+
 
 def display_number_of_people(num_people, frame):
     text = "Number of people detected = " + str(num_people)
@@ -58,85 +66,104 @@ def display_number_of_people(num_people, frame):
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
 
-def create_dir(dirname):
-   try:
-      os.mkdir(dirname)
-   except OSError as error:
-      pass
 
-def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber, filename, fourcc, violCounter):
-   if violation == True:
-      violCounter = 0
-      if audioAlert == True:
-         print('\a')
-         # no cooldown means this has the possibility to beep every frame (24/30/60 times a second?) - probably could do better
-         # implement some more advanced stuff?
-      if screenShots == True:
-         if screenShotOut == None:
-            screenShotOut = cv2.VideoWriter(filename + str(screenShotNumber) + ".avi"   , fourcc, 20.0, (1280, 720))
-         if screenShotOut != None:
+def create_dir(dirname):
+    try:
+        os.mkdir(dirname)
+    except OSError as error:
+        pass
+
+
+def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber,
+                      filename, fourcc, violCounter):
+    if violation == True:
+        violCounter = 0
+        if audioAlert == True:
+            print('\a')
+            # no cooldown means this has the possibility to beep every frame (24/30/60 times a second?) - probably could do better
+            # implement some more advanced stuff?
+        if screenShots == True:
+            if screenShotOut == None:
+                screenShotOut = cv2.VideoWriter(filename + str(screenShotNumber) + ".avi", fourcc, 20.0, (1280, 720))
+            if screenShotOut != None:
+                screenShotOut.write(frame)
+    else:
+        if screenShotOut != None:
             screenShotOut.write(frame)
-   else:
-      if screenShotOut != None:
-         screenShotOut.write(frame)
-      violCounter += 1
-      if violCounter >= VIOLATION_WAIT and screenShotOut != None:
-         screenShotOut.release()
-         screenShotOut = None
-         screenShotNumber += 1
-   return screenShotOut, screenShotNumber, violCounter
+        violCounter += 1
+        if violCounter >= VIOLATION_WAIT and screenShotOut != None:
+            screenShotOut.release()
+            screenShotOut = None
+            screenShotNumber += 1
+    return screenShotOut, screenShotNumber, violCounter
+
 
 def setup_video(screenShotsDir):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     filename = 'output'
     if (screenShotsDir == ''):
-       finalpath = filename
+        finalpath = filename
     else:
-       finalpath = screenShotsDir + '/' + filename
-       create_dir(screenShotsDir)
+        finalpath = screenShotsDir + '/' + filename
+        create_dir(screenShotsDir)
     return finalpath, fourcc
 
+
 def get_time():
-   return time.asctime( time.localtime(time.time()) )
+    return time.asctime(time.localtime(time.time()))
+
 
 def compress_videos(screenShotsDir, screenShotNumber):
-   print(screenShotNumber)
+    print(screenShotNumber)
 
-def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots): #,screenShotsDir): #temp removed, because GUI doesn't have it yet.
+
+def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert,
+                               screenShots):  # ,screenShotsDir): #temp removed, because GUI doesn't have it yet.
     screenShotsDir = os.getcwd()
     screenShotsDir += "/screenshots"
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
     # test video file - make sure to remove this and uncomment the webcam line
     cap = start_videocapture("video_file", "test.mp4")
-    #cap = start_videocapture("webcam", "none")
+    # cap = start_videocapture("webcam", "none")
     # setup screenshot stuff to save a video
     filename, fourcc = setup_video(screenShotsDir)
     vidout = None
     vidnumber = 0
     violCounter = 0
-    while(True):
+
+    last_violation_time = time.time()
+
+    while (True):
         ret, frame = cap.read()
-        
+
         height_window, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
         boxes, confs, class_ids = get_box_dimensions(outputs, height_window, width)
-        
-        notify_bool = draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
+
+        update_notify = draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
+
+        # cooldown - notify_bool will tell the program to continue taking video or not.
+        if update_notify:
+            last_violation_time = time.time()
+        notify_bool = (update_notify or time.time() - last_violation_time < SECONDS_VIOLATION)
+
         print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
         draw_text(frame, get_time(), 0, 25, COLOR_GREEN)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
-        vidout, vidnumber, violCounter = too_close_handler(notify_bool, audioAlert, screenShots, screenShotsDir, frame, vidout,
+        vidout, vidnumber, violCounter = too_close_handler(notify_bool, audioAlert, screenShots, screenShotsDir, frame,
+                                                           vidout,
                                                            vidnumber, filename, fourcc, violCounter)
         key = cv2.waitKey(1)
         if key == 27:
-           break
+            break
 
     cap.release()
     if vidout != None:
-       vidout.release()
+        vidout.release()
     print("[+] Ending detection...")
     compress_videos(screenShotsDir, vidnumber)
+
 
 def load_yolo():
     yolov3_weights = ""
@@ -148,32 +175,32 @@ def load_yolo():
 
         yolov3_cfg = os.getcwd()
         yolov3_cfg += "\\yolov3.cfg"
-        
+
         if not os.path.exists(yolov3_weights):
             print(f"file path to {yolov3_weights} not found")
             print("Attempting to download yolov3.weights (250MB)...")
 
-            #url = "https://pjreddie.com/media/files/yolov3.weights" #official source
-            url = "https://www.dropbox.com/s/xb3n2zycopf4zte/yolov3.weights?dl=1" # our own dropbox link
+            # url = "https://pjreddie.com/media/files/yolov3.weights" #official source
+            url = "https://www.dropbox.com/s/xb3n2zycopf4zte/yolov3.weights?dl=1"  # our own dropbox link
             wget.download(url)
             print("\nSuccesfully downloaded yolov3.weights")
-        
+
         if not os.path.exists(yolov3_cfg):
             print(f"file path to {yolov3_cfg} not found")
             print("Attempting to download yolov3.cfg...")
 
-            url = "https://raw.githubusercontent.com/noahlwest/cse115a/master/yolov3.cfg" # our github
+            url = "https://raw.githubusercontent.com/noahlwest/cse115a/master/yolov3.cfg"  # our github
             wget.download(url)
-            print("\nSuccesfully downloaded yolov3.cfg")            
+            print("\nSuccesfully downloaded yolov3.cfg")
 
     except Exception as e:
         print(e)
 
     net = cv2.dnn.readNet(yolov3_weights, yolov3_cfg)
 
-    try: 
+    try:
         result = cv2.cuda.getCudaEnabledDeviceCount()
-        
+
         if result > 0:
             net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
             net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
@@ -181,7 +208,6 @@ def load_yolo():
         #     print("cuda not found")
     except Exception as error:
         print(error)
-
 
     classes = []
     with open("coco.names", "r") as f:
@@ -193,6 +219,7 @@ def load_yolo():
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
     return net, classes, colors, output_layers
 
+
 def display_blob(blob):
     '''
             Three images each for RED, GREEN, BLUE channel
@@ -201,12 +228,14 @@ def display_blob(blob):
         for n, imgb in enumerate(b):
             cv2.imshow(str(n), imgb)
 
+
 def detect_objects(img, net, outputLayers):
     blob = cv2.dnn.blobFromImage(img, scalefactor=0.00392, size=(
         320, 320), mean=(0, 0, 0), swapRB=True, crop=False)
     net.setInput(blob)
     outputs = net.forward(outputLayers)
     return blob, outputs
+
 
 def get_box_dimensions(outputs, height, width):
     boxes = []
@@ -228,6 +257,7 @@ def get_box_dimensions(outputs, height, width):
                 confs.append(float(conf))
                 class_ids.append(class_id)
     return boxes, confs, class_ids
+
 
 def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
@@ -271,7 +301,7 @@ def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle,
             dist1 = distance_functions.find_distance(height, angle, v_fov, y1 / PIXEL_HEIGHT)
             dist2 = distance_functions.find_distance(height, angle, v_fov, y2 / PIXEL_HEIGHT)
             dist = distance_functions.return_distance(new_feet[i], new_feet[j], v_fov, h_fov, angle, dist1, dist2)
-            if dist < DISTANCE_VIOLATION :
+            if dist < DISTANCE_VIOLATION:
                 if_violation = True
             draw_text(img, str(round(dist, 2)), int((abs(x1 + x2) / 2)), int((abs(y1 + y2) / 2)), colors[1])
             draw_line(img, x1, y1, x2, y2, colors[1])
@@ -299,14 +329,17 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
 
     return counter
 
+
 def draw_line(frame, xA, yA, xB, yB, color):
     point_one = (xA, yA)
     point_two = (xB, yB)
     cv2.line(frame, point_one, point_two, color, thickness=2)
 
+
 def draw_text(frame, text, x_coord, y_coord, color):
     point = (x_coord, y_coord)
     cv2.putText(frame, text, point, cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+
 
 def dist_on_foot(dis, frame, coord):
     text = str(round(dis, 2))
@@ -316,6 +349,7 @@ def dist_on_foot(dis, frame, coord):
     fontColor = (255, 255, 255)
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
+
 
 def get_feet_pos(boxes):
     feet_pos = []
