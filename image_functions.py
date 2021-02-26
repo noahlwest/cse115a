@@ -15,7 +15,7 @@ PIXEL_HEIGHT = 720
 
 COLOR_GREEN = (0, 255, 0)
 COLOR_RED = (0, 0, 255)
-VIOLATION_WAIT = 12
+VIOLATION_WAIT = 6
 
 def init_opencv():
     cv2.startWindowThread()
@@ -74,9 +74,11 @@ def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame,
       if screenShots == True:
          if screenShotOut == None:
             screenShotOut = cv2.VideoWriter(filename + str(screenShotNumber) + ".avi"   , fourcc, 20.0, (1280, 720))
-         screenShotOut.write(frame)
+         if screenShotOut != None:
+            screenShotOut.write(frame)
    else:
-      screenShotOut.write(frame)
+      if screenShotOut != None:
+         screenShotOut.write(frame)
       violCounter += 1
       if violCounter >= VIOLATION_WAIT and screenShotOut != None:
          screenShotOut.release()
@@ -84,7 +86,7 @@ def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame,
          screenShotNumber += 1
    return screenShotOut, screenShotNumber, violCounter
 
-def setupVideo(screenShotsDir):
+def setup_video(screenShotsDir):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     filename = 'output'
     if (screenShotsDir == ''):
@@ -94,27 +96,23 @@ def setupVideo(screenShotsDir):
        create_dir(screenShotsDir)
     return finalpath, fourcc
 
-def getTime():
+def get_time():
    return time.asctime( time.localtime(time.time()) )
+
+def compress_videos(screenShotsDir, screenShotNumber):
+   print(screenShotNumber)
 
 def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots): #,screenShotsDir): #temp removed, because GUI doesn't have it yet.
     screenShotsDir = os.getcwd()
-    screenShotsDir += "\\screenshots"
+    screenShotsDir += "/screenshots"
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
-    cap = start_videocapture("webcam", "none")
+    # test video file - make sure to remove this and uncomment the webcam line
+    cap = start_videocapture("video_file", "test.mp4")
+    #cap = start_videocapture("webcam", "none")
     # setup screenshot stuff to save a video
-    filename, fourcc = setupVideo(screenShotsDir)
+    filename, fourcc = setup_video(screenShotsDir)
     vidout = None
-    # test code for too_close_handler to handle "sets" of violations
-    violations = []
-    for i in range(25):
-       violations.append(True)
-    for i in range(12):
-       violations.append(False)
-    for i in range(25):
-       violations.append(True)
-    index = 0
     vidnumber = 0
     violCounter = 0
     while(True):
@@ -126,11 +124,10 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         
         notify_bool = draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
         print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
-        draw_text(frame, getTime(), 0, 25, COLOR_GREEN)
+        draw_text(frame, get_time(), 0, 25, COLOR_GREEN)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
-        vidout, vidnumber, violCounter = too_close_handler(violations[index], audioAlert, screenShots, screenShotsDir, frame, vidout,
-                                                          vidnumber, filename, fourcc, violCounter)
-        index += 1
+        vidout, vidnumber, violCounter = too_close_handler(notify_bool, audioAlert, screenShots, screenShotsDir, frame, vidout,
+                                                           vidnumber, filename, fourcc, violCounter)
         key = cv2.waitKey(1)
         if key == 27:
            break
@@ -139,6 +136,7 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
     if vidout != None:
        vidout.release()
     print("[+] Ending detection...")
+    compress_videos(screenShotsDir, vidnumber)
 
 def load_yolo():
     yolov3_weights = ""
