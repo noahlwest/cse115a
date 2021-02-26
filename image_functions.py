@@ -119,7 +119,7 @@ def saveframe(filename, dirname, frame):
    cv2.imwrite(finalpath, frame)
 
 
-def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots):
+def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, screenshot_path, video_path):
     #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()

@@ -1,19 +1,3 @@
-################################################################################
-##
-## BY: WANDERSON M.PIMENTA
-## PROJECT MADE WITH: Qt Designer and PySide2
-## V: 1.0.0
-##
-## This project can be used freely for all uses, as long as they maintain the
-## respective credits only in the Python scripts, any information in the visual
-## interface (GUI) can be modified without any implication.
-##
-## There are limitations on Qt licenses if you want to use your products
-## commercially, I recommend reading them on the official website:
-## https://doc.qt.io/qtforpython/licenses.html
-##
-################################################################################
-
 import sys
 import platform
 from PySide2 import QtCore, QtGui, QtWidgets
@@ -24,6 +8,7 @@ from PySide2.QtWidgets import *
 # GUI FILE
 from app_modules import *
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
@@ -31,8 +16,8 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         ## PRINT ==> SYSTEM
-        print('System: ' + platform.system())
-        print('Version: ' +platform.release())
+        print('System: '  + platform.system())
+        print('Version: ' + platform.release())
 
         ########################################################################
         ## START - WINDOW ATTRIBUTES
