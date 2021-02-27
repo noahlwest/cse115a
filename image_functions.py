@@ -123,9 +123,7 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
     screenShotsDir += "/screenshots"
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
-    # test video file - make sure to remove this and uncomment the webcam line
-    cap = start_videocapture("video_file", "test.mp4")
-    # cap = start_videocapture("webcam", "none")
+    cap = start_videocapture("webcam", "none")
     # setup screenshot stuff to save a video
     filename, fourcc = setup_video(screenShotsDir)
     vidout = None
