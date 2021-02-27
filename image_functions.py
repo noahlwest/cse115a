@@ -117,8 +117,20 @@ def compress_videos(screenShotsDir, screenShotNumber):
     print(screenShotNumber)
 
 
-def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert,
-                               screenShots):  # ,screenShotsDir): #temp removed, because GUI doesn't have it yet.
+def saveframe(filename, dirname, frame):
+   if (dirname == ""):
+      finalpath = filename
+   else:
+      finalpath = dirname + "/" + filename
+   try:
+      os.mkdir(dirname)
+   except OSError as error:
+      pass
+   cv2.imwrite(finalpath, frame)
+
+
+def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, screenshot_path, video_path):
+    #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
     screenShotsDir = os.getcwd()
     screenShotsDir += "/screenshots"
     print("[+] Human detection started")
