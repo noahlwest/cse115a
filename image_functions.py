@@ -8,8 +8,6 @@ import time
 HEIGHT_CONSTANT = 3
 WIDTH_CONSTANT = 4
 
-DISTANCE_VIOLATION = 6
-
 PIXEL_WIDTH = 1280
 PIXEL_HEIGHT = 720
 
@@ -141,10 +139,12 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
     vidout = None
     vidnumber = 0
     violCounter = 0
+    screenShotOut = None
+    # test code for too_close_handler to handle "sets" of violations
+    last_violation_time = 0
+    screenShotNumber = 0
 
-    last_violation_time = time.time()
-
-    while (True):
+    while True:
         ret, frame = cap.read()
 
         height_window, width, channels = frame.shape
@@ -162,8 +162,7 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         draw_text(frame, get_time(), 0, 25, COLOR_GREEN)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
         vidout, vidnumber, violCounter = too_close_handler(notify_bool, audioAlert, screenShots, screenShotsDir, frame,
-                                                           vidout,
-                                                           vidnumber, filename, fourcc, violCounter)
+                                                           vidout, vidnumber, filename, fourcc, violCounter)
         key = cv2.waitKey(1)
         if key == 27:
             break
@@ -173,6 +172,7 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         vidout.release()
     print("[+] Ending detection...")
     compress_videos(screenShotsDir, vidnumber)
+
 
 
 def load_yolo():
@@ -275,23 +275,20 @@ def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
     distances = []
     for i in range(len(boxes)):
         if i in indexes:
-            # if class_ids[i] == 0:
-            x1, y1 = feet[i]
-            x1 = int(x1)
-            y1 = int(y1)
-            dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img, (x1 - 20, y1))
-            print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
+            if class_ids[i] == 0:
+                x1, y1 = feet[i]
+                x1 = int(x1)
+                y1 = int(y1)
+                dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img, (x1 - 20, y1))
+                # print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
 
 
 def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle, v_fov, h_fov):
     # get "unique" boxes
     if_violation = False
-    print("[+] Drawing lines")
     un_flatten_index = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
-
     if isinstance(un_flatten_index, tuple):
         return
-
     indexes = np.ndarray.flatten(un_flatten_index)
     feet_pos = get_feet_pos(boxes)
     new_feet = []
@@ -313,8 +310,12 @@ def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle,
             dist = distance_functions.return_distance(new_feet[i], new_feet[j], v_fov, h_fov, angle, dist1, dist2)
             if dist < DISTANCE_VIOLATION:
                 if_violation = True
-            draw_text(img, str(round(dist, 2)), int((abs(x1 + x2) / 2)), int((abs(y1 + y2) / 2)), colors[1])
-            draw_line(img, x1, y1, x2, y2, colors[1])
+                display_color = COLOR_RED
+            else:
+                display_color = COLOR_GREEN
+            print("[+] Drawing lines")
+            draw_text(img, str(round(dist, 2)), int((abs(x1 + x2) / 2)), int((abs(y1 + y2) / 2)), colors[0])
+            draw_line(img, x1, y1, x2, y2, colors[0])
 
     return if_violation
 

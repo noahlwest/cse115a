@@ -26,12 +26,12 @@ def adjust_angle_vert(angle, fov, vertical_position):
 
 
 def find_distance(height, angle, fov, vertical_position_of_persons_feet):
-    print("height:", height)
-    print("angle:", angle)
-    print("fov:", fov)
-    print("vertical_position_of_persons_feet:", 100 - vertical_position_of_persons_feet * 100)
+    #print("height:", height)
+    #print("angle:", angle)
+    #print("fov:", fov)
+    #print("vertical_position_of_persons_feet:", 100 - vertical_position_of_persons_feet * 100)
     final_angle = adjust_angle(angle, fov, 100 - vertical_position_of_persons_feet * 100)
-    print("final_angle:", final_angle)
+    #print("final_angle:", final_angle)
     final_angle = math.radians(final_angle)
     distance = height * (1 / math.cos(final_angle))
     return distance
@@ -59,6 +59,6 @@ def return_distance(xy_tuple1, xy_tuple2, v_fov, h_fov, angle, dist1, dist2):
     y1 = adjust_angle_vert(angle, v_fov, y1)
     y2 = adjust_angle_vert(angle, v_fov, y2)
 
-    print(dist1, y1, x1, dist2, y2, x2)
+    #print(dist1, y1, x1, dist2, y2, x2)
 
     return distance_between_points(dist1, y1, x1, dist2, y2, x2)

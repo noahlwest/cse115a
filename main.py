@@ -1,8 +1,10 @@
 import sys
 import platform
 from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtCore import (QCoreApplication, QPropertyAnimation, QDate, QDateTime, QMetaObject, QObject, QPoint, QRect, QSize, QTime, QUrl, Qt, QEvent)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont, QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter, QPixmap, QRadialGradient)
+from PySide2.QtCore import (QCoreApplication, QPropertyAnimation, QDate, QDateTime, QMetaObject, QObject, QPoint, QRect,
+                            QSize, QTime, QUrl, Qt, QEvent)
+from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont, QFontDatabase, QIcon, QKeySequence,
+                           QLinearGradient, QPalette, QPainter, QPixmap, QRadialGradient)
 from PySide2.QtWidgets import *
 
 # GUI FILE
@@ -16,7 +18,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         ## PRINT ==> SYSTEM
-        print('System: '  + platform.system())
+        print('System: ' + platform.system())
         print('Version: ' + platform.release())
 
         ########################################################################
@@ -30,7 +32,7 @@ class MainWindow(QMainWindow):
         ## SET ==> WINDOW TITLE
         self.setWindowTitle('Main Window')
         UIFunctions.labelTitle(self, 'Main Window')
-        #UIFunctions.labelDescription(self, 'Set text')
+        # UIFunctions.labelDescription(self, 'Set text')
         ## ==> END ##
 
         ## WINDOW SIZE ==> DEFAULT SIZE
@@ -50,8 +52,9 @@ class MainWindow(QMainWindow):
         ## ==> ADD CUSTOM MENUS
         self.ui.stackedWidget.setMinimumWidth(20)
         UIFunctions.addNewMenu(self, "HOME", "btn_home", "url(:/16x16/icons/16x16/cil-home.png)", True)
-        #UIFunctions.addNewMenu(self, "Add User", "btn_new_user", "url(:/16x16/icons/16x16/cil-user-follow.png)", True)
-        UIFunctions.addNewMenu(self, "Advance Settings", "btn_widgets", "url(:/16x16/icons/16x16/cil-equalizer.png)", False)
+        # UIFunctions.addNewMenu(self, "Add User", "btn_new_user", "url(:/16x16/icons/16x16/cil-user-follow.png)", True)
+        UIFunctions.addNewMenu(self, "Advance Settings", "btn_widgets", "url(:/16x16/icons/16x16/cil-equalizer.png)",
+                               False)
         ## ==> END ##
 
         # START MENU => SELECTION
@@ -60,12 +63,12 @@ class MainWindow(QMainWindow):
 
         ## ==> START PAGE
         self.ui.stackedWidget.setCurrentWidget(self.ui.page_home)
+
         ## ==> END ##
 
         ## USER ICON ==> SHOW HIDE
-        #UIFunctions.userIcon(self, "WM", "", True)
+        # UIFunctions.userIcon(self, "WM", "", True)
         ## ==> END ##
-
 
         ## ==> MOVE WINDOW / MAXIMIZE / RESTORE
         ########################################################################
@@ -93,9 +96,6 @@ class MainWindow(QMainWindow):
         ## END - WINDOW ATTRIBUTES
         ############################## ---/--/--- ##############################
 
-
-
-
         ########################################################################
         #                                                                      #
         ## START -------------- WIDGETS FUNCTIONS/PARAMETERS ---------------- ##
@@ -103,21 +103,16 @@ class MainWindow(QMainWindow):
         ## ==> USER CODES BELLOW                                              ##
         ########################################################################
 
-
-
         ## ==> QTableWidget RARAMETERS
         ########################################################################
-        #self.ui.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        # self.ui.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         ## ==> END ##
-
-
 
         ########################################################################
         #                                                                      #
         ## END --------------- WIDGETS FUNCTIONS/PARAMETERS ----------------- ##
         #                                                                      #
         ############################## ---/--/--- ##############################
-
 
         ## SHOW ==> MAIN WINDOW
         ########################################################################
@@ -163,6 +158,7 @@ class MainWindow(QMainWindow):
     def eventFilter(self, watched, event):
         if watched == self.le and event.type() == QtCore.QEvent.MouseButtonDblClick:
             print("pos: ", event.pos())
+
     ## ==> END ##
 
     ## EVENT ==> MOUSE CLICK
@@ -184,6 +180,7 @@ class MainWindow(QMainWindow):
     ########################################################################
     def keyPressEvent(self, event):
         print('Key: ' + str(event.key()) + ' | Text Press: ' + str(event.text()))
+
     ## ==> END ##
 
     ## EVENT ==> RESIZE EVENT
@@ -199,6 +196,7 @@ class MainWindow(QMainWindow):
     ########################################################################
     ## END ==> APP EVENTS
     ############################## ---/--/--- ##############################
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
