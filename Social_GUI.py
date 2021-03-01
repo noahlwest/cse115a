@@ -1209,11 +1209,31 @@ class Ui_MainWindow(object):
 
 
     def open_screenshot_dialog(self):
+        def updateText():
+            # update the contents of the line edit widget with the selected files
+            selected = []
+            for index in view.selectionModel().selectedRows():
+                  selected.append('"{}"'.format(index.data()))
+            lineEdit.setText(' '.join(selected))
         check = QWidget()
-        dialog = QFileDialog(check)
-        dialog.setFileMode(QFileDialog.FileMode.Directory)
+        dialog = QtWidgets.QFileDialog(check)
+        dialog.setFileMode(dialog.Directory)
+        dialog.setOption(dialog.DontUseNativeDialog, True)
+        dialog.accept = lambda: QtWidgets.QDialog.accept(dialog)
+        
+        stackedWidget = dialog.findChild(QtWidgets.QStackedWidget)
+        view = stackedWidget.findChild(QtWidgets.QListView)
+        view.selectionModel().selectionChanged.connect(updateText)
+        
+        lineEdit = dialog.findChild(QtWidgets.QLineEdit)
+        # clear the line edit contents whenever the current directory changes
+        dialog.directoryEntered.connect(lambda: lineEdit.setText(''))
+        
+        dialog.exec_()
         print(QFileDialog.fileMode(dialog))
-        path, _ = dialog.getOpenFileName()
+        path = dialog.selectedFiles()[0]
         self.screenpath_lineEdit.setText(path)
+        print("Selected files = ")
+        print(dialog.selectedFiles())
         print(self.screenpath_lineEdit.text())
 
