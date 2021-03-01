@@ -153,22 +153,6 @@ class UIFunctions(MainWindow):
         newText = '| ' + text.upper()
         self.ui.label_top_info_2.setText(newText)
 
-    ## ==> USER ICON
-    ########################################################################
-    def userIcon(self, initialsTooltip, icon, showHide):
-        if showHide:
-            # SET TEXT
-            self.ui.label_user_icon.setText(initialsTooltip)
-
-            # SET ICON
-            if icon:
-                style = self.ui.label_user_icon.styleSheet()
-                setIcon = "QLabel { background-image: " + icon + "; }"
-                self.ui.label_user_icon.setStyleSheet(style + setIcon)
-                self.ui.label_user_icon.setText('')
-                self.ui.label_user_icon.setToolTip(initialsTooltip)
-        else:
-            self.ui.label_user_icon.hide()
 
     ########################################################################
     ## END - GUI FUNCTIONS
