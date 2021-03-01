@@ -131,8 +131,11 @@ def saveframe(filename, dirname, frame):
 
 def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, screenshot_path, video_path):
     #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
-    screenShotsDir = os.getcwd()
-    screenShotsDir += "/screenshots"
+    if screenshot_path == "":
+       screenShotsDir = os.getcwd()
+       screenShotsDir += "/screenshots"
+    else:
+       screenShotsDir = screenshot_path
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
     cap = start_videocapture("webcam", "none")
@@ -161,8 +164,8 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
         draw_text(frame, get_time(), 0, 25, COLOR_GREEN)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
-        vidout, vidnumber, violCounter = too_close_handler(notify_bool, audioAlert, screenShots, screenShotsDir, frame,
-                                                           vidout,
+        vidout, vidnumber, violCounter = too_close_handler(notify_bool, audioAlert, screenShots,
+                                                           screenShotsDir, frame, vidout,
                                                            vidnumber, filename, fourcc, violCounter)
         key = cv2.waitKey(1)
         if key == 27:
