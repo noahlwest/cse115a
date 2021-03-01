@@ -1128,10 +1128,10 @@ class Ui_MainWindow(object):
 
 
     def show_popup(self) -> None:
-        height = 9
-        angle = 90
-        fov_h = 90
-        fov_v = 110
+        height = 8
+        angle = 62
+        fov_h = 45
+        fov_v = 45
 
         # Dummy variables for the otherboxes on GUI --
         webCheck    = self.webcam_Radio.isChecked()
