@@ -8,6 +8,8 @@ import time
 HEIGHT_CONSTANT = 3
 WIDTH_CONSTANT = 4
 
+DISTANCE_VIOLATION = 6
+
 PIXEL_WIDTH = 1280
 PIXEL_HEIGHT = 720
 
@@ -16,17 +18,17 @@ COLOR_RED = (0, 0, 255)
 VIOLATION_WAIT = 6
 
 SECONDS_VIOLATION = 10
-DISTANCE_VIOLATION = 6
+ALERT_TIMER = 10
 
+def get_time():
+    return time.asctime(time.localtime(time.time()))
 
 def init_opencv():
     cv2.startWindowThread()
 
-
 def stop_opencv():
     cv2.destroyAllWindows()
     cv2.waitKey(1)
-
 
 def start_videocapture(source, location):
     print("[+] Getting Video feed")
@@ -46,15 +48,12 @@ def start_videocapture(source, location):
     print("Invalid starting configuration. Exiting.")
     exit(1)
 
-
 def set_cap_height_and_width(cap, height, width):
     cap.set(HEIGHT_CONSTANT, height)
     cap.set(WIDTH_CONSTANT, width)
 
-
 def resize_frame(frame, width, height):
     cv2.resize(frame, (width, height))
-
 
 def display_number_of_people(num_people, frame):
     text = "Number of people detected = " + str(num_people)
@@ -65,25 +64,24 @@ def display_number_of_people(num_people, frame):
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
 
-
 def create_dir(dirname):
     try:
         os.mkdir(dirname)
     except OSError as error:
         pass
 
-
 def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber,
-                      filename, fourcc, violCounter):
+                      filename, fourcc, violCounter, time_since_last_alert):
     if violation == True:
         violCounter = 0
-        if audioAlert == True:
+        if audioAlert == True and (time.time() - time_since_last_alert >= ALERT_TIMER):
             print('\a')
+            time_since_last_alert = time.time()
             # no cooldown means this has the possibility to beep every frame (24/30/60 times a second?) - probably could do better
             # implement some more advanced stuff?
         if screenShots == True:
             if screenShotOut == None:
-                screenShotOut = cv2.VideoWriter(filename + str(screenShotNumber) + ".avi", fourcc, 20.0, (1280, 720))
+                screenShotOut = cv2.VideoWriter(filename + str(screenShotNumber) + ".avi", fourcc, 20.0, (PIXEL_WIDTH, PIXEL_HEIGHT))
             if screenShotOut != None:
                 screenShotOut.write(frame)
     else:
@@ -93,9 +91,7 @@ def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame,
         if violCounter >= VIOLATION_WAIT and screenShotOut != None:
             screenShotOut.release()
             screenShotOut = None
-            screenShotNumber += 1
-    return screenShotOut, screenShotNumber, violCounter
-
+    return screenShotOut, violCounter, time_since_last_alert
 
 def setup_video(screenShotsDir):
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -107,9 +103,6 @@ def setup_video(screenShotsDir):
         create_dir(screenShotsDir)
     return finalpath, fourcc
 
-
-def get_time():
-    return time.asctime(time.localtime(time.time()))
 
 
 def compress_videos(screenShotsDir, screenShotNumber):
@@ -137,18 +130,19 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
        screenShotsDir = screenshot_path
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
-    cap = start_videocapture("webcam", "none")
+    source = "video_file"
+    if webCheck:
+       source = "webcam"
+    cap = start_videocapture(source, video_path)
     # setup screenshot stuff to save a video
     filename, fourcc = setup_video(screenShotsDir)
     vidout = None
     vidnumber = 0
     violCounter = 0
-    screenShotOut = None
-    # test code for too_close_handler to handle "sets" of violations
-    last_violation_time = 0
-    screenShotNumber = 0
 
-    while True:
+    last_violation_time = time.time()
+    time_since_last_alert = time.time()
+    while (True):
         ret, frame = cap.read()
 
         height_window, width, channels = frame.shape
@@ -156,17 +150,19 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         boxes, confs, class_ids = get_box_dimensions(outputs, height_window, width)
 
         update_notify = draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
-
         # cooldown - notify_bool will tell the program to continue taking video or not.
         if update_notify:
             last_violation_time = time.time()
         notify_bool = (update_notify or time.time() - last_violation_time < SECONDS_VIOLATION)
 
         print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
-        draw_text(frame, get_time(), 0, 25, COLOR_GREEN)
+        if webCheck:
+           draw_text(frame, get_time(), 0, 25, COLOR_GREEN)
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
-        vidout, vidnumber, violCounter = too_close_handler(notify_bool, audioAlert, screenShots, screenShotsDir, frame,
-                                                           vidout, vidnumber, filename, fourcc, violCounter)
+        vidnumber = last_violation_time
+        vidout, violCounter, time_since_last_alert = too_close_handler(notify_bool, audioAlert, screenShots,
+                                                screenShotsDir, frame, vidout,
+                                                vidnumber, filename, fourcc, violCounter, time_since_last_alert)
         key = cv2.waitKey(1)
         if key == 27:
             break
@@ -176,7 +172,6 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
         vidout.release()
     print("[+] Ending detection...")
     compress_videos(screenShotsDir, vidnumber)
-
 
 
 def load_yolo():
@@ -279,20 +274,23 @@ def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
     distances = []
     for i in range(len(boxes)):
         if i in indexes:
-            if class_ids[i] == 0:
-                x1, y1 = feet[i]
-                x1 = int(x1)
-                y1 = int(y1)
-                dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img, (x1 - 20, y1))
-                # print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
+            # if class_ids[i] == 0:
+            x1, y1 = feet[i]
+            x1 = int(x1)
+            y1 = int(y1)
+            dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img, (x1 - 20, y1))
+            print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
 
 
 def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle, v_fov, h_fov):
     # get "unique" boxes
     if_violation = False
+    print("[+] Drawing lines")
     un_flatten_index = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
+
     if isinstance(un_flatten_index, tuple):
         return
+
     indexes = np.ndarray.flatten(un_flatten_index)
     feet_pos = get_feet_pos(boxes)
     new_feet = []
@@ -314,12 +312,8 @@ def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle,
             dist = distance_functions.return_distance(new_feet[i], new_feet[j], v_fov, h_fov, angle, dist1, dist2)
             if dist < DISTANCE_VIOLATION:
                 if_violation = True
-                display_color = COLOR_RED
-            else:
-                display_color = COLOR_GREEN
-            print("[+] Drawing lines")
-            draw_text(img, str(round(dist, 2)), int((abs(x1 + x2) / 2)), int((abs(y1 + y2) / 2)), colors[0])
-            draw_line(img, x1, y1, x2, y2, colors[0])
+            draw_text(img, str(round(dist, 2)), int((abs(x1 + x2) / 2)), int((abs(y1 + y2) / 2)), colors[1])
+            draw_line(img, x1, y1, x2, y2, colors[1])
 
     return if_violation
 
