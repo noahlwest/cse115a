@@ -21,8 +21,13 @@ SECONDS_VIOLATION = 10
 ALERT_TIMER = 10
 
 def get_time():
-    return time.asctime(time.localtime(time.time()))
+    return time.localtime(time.time())
 
+def format_date_time(date):
+    year = date.tm_year
+    month = date.tm_mon
+    return str(date.tm_year) + "-" + str(date.tm_mon) + "-" + str(date.tm_mday) + "-" \
+           + str(date.tm_min) + "-" + str(date.tm_sec)
 def init_opencv():
     cv2.startWindowThread()
 
@@ -32,21 +37,25 @@ def stop_opencv():
 
 def start_videocapture(source, location):
     print("[+] Getting Video feed")
+    mywidth = 0
+    myheight = 0
     if source == "webcam":
         cap = cv2.VideoCapture(0)  # starts on default webcam
-        set_cap_height_and_width(cap, PIXEL_WIDTH, PIXEL_HEIGHT)
         print("[+] Webcam set-up")
-        return cap
-    if source == "video_file":
+        mywidth = PIXEL_WIDTH
+        myheight = PIXEL_HEIGHT
+    elif source == "video_file":
         cap = cv2.VideoCapture(location)
-        set_cap_height_and_width(cap, PIXEL_WIDTH, PIXEL_HEIGHT)
         print("[+] Video File set-up")
-        return cap
+        mywidth = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        myheight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    else:
+        # no input:
+        print("Invalid starting configuration. Exiting.")
+        exit(1)
+    set_cap_height_and_width(cap, mywidth, myheight)
+    return cap, mywidth, myheight
     # TODO: add video stream as possible source
-
-    # no input:
-    print("Invalid starting configuration. Exiting.")
-    exit(1)
 
 def set_cap_height_and_width(cap, height, width):
     cap.set(HEIGHT_CONSTANT, height)
@@ -70,31 +79,31 @@ def create_dir(dirname):
     except OSError as error:
         pass
 
-def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame, screenShotOut, screenShotNumber,
-                      filename, fourcc, violCounter, time_since_last_alert):
+def too_close_handler(violation, audioAlert, screenShots, screenShotsDir, frame, vidout, vidnumber,
+                      filename, fourcc, violCounter, time_of_last_alert, capwidth, capheight):
     if violation == True:
-        violCounter = 0
-        if audioAlert == True and (time.time() - time_since_last_alert >= ALERT_TIMER):
-            print('\a')
-            time_since_last_alert = time.time()
-            # no cooldown means this has the possibility to beep every frame (24/30/60 times a second?) - probably could do better
-            # implement some more advanced stuff?
-        if screenShots == True:
-            if screenShotOut == None:
-                screenShotOut = cv2.VideoWriter(filename + str(screenShotNumber) + ".avi", fourcc, 20.0, (PIXEL_WIDTH, PIXEL_HEIGHT))
-            if screenShotOut != None:
-                screenShotOut.write(frame)
+       violCounter = 0
+       if audioAlert == True and (time.time() - time_of_last_alert >= ALERT_TIMER):
+           print('\a')
+           time_of_last_alert = time.time()
+           # implement some more advanced stuff?
+       if screenShots == True:
+          videoname = filename + format_date_time(vidnumber) + ".mp4"
+          if vidout == None:
+             vidout = cv2.VideoWriter(videoname, fourcc, 20.0, (int(capwidth), int(capheight)))
+          if vidout != None:
+             vidout.write(frame)
     else:
-        if screenShotOut != None:
-            screenShotOut.write(frame)
+        if vidout != None:
+            vidout.write(frame)
         violCounter += 1
-        if violCounter >= VIOLATION_WAIT and screenShotOut != None:
-            screenShotOut.release()
-            screenShotOut = None
-    return screenShotOut, violCounter, time_since_last_alert
+        if violCounter >= VIOLATION_WAIT and vidout != None:
+           vidout.release()
+           vidout = None
+    return vidout, violCounter, time_of_last_alert
 
-def setup_video(screenShotsDir):
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+def setup_vidout(screenShotsDir):
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     filename = 'output'
     if (screenShotsDir == ''):
         finalpath = filename
@@ -104,23 +113,6 @@ def setup_video(screenShotsDir):
     return finalpath, fourcc
 
 
-
-def compress_videos(screenShotsDir, screenShotNumber):
-    print(screenShotNumber)
-
-
-def saveframe(filename, dirname, frame):
-   if (dirname == ""):
-      finalpath = filename
-   else:
-      finalpath = dirname + "/" + filename
-   try:
-      os.mkdir(dirname)
-   except OSError as error:
-      pass
-   cv2.imwrite(finalpath, frame)
-
-
 def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, screenshot_path, video_path):
     #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
     if screenshot_path == "":
@@ -128,20 +120,21 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
        screenShotsDir += "/screenshots"
     else:
        screenShotsDir = screenshot_path
+    print("screenShotsDir = " + screenShotsDir)
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
     source = "video_file"
     if webCheck:
        source = "webcam"
-    cap = start_videocapture(source, video_path)
+    cap, capwidth, capheight = start_videocapture(source, video_path)
     # setup screenshot stuff to save a video
-    filename, fourcc = setup_video(screenShotsDir)
+    filename, fourcc = setup_vidout(screenShotsDir)
     vidout = None
     vidnumber = 0
     violCounter = 0
 
-    last_violation_time = time.time()
-    time_since_last_alert = time.time()
+    last_violation_time = 0
+    time_of_last_alert = 0
     while (True):
         ret, frame = cap.read()
 
@@ -157,21 +150,20 @@ def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert
 
         print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
         if webCheck:
-           draw_text(frame, get_time(), 0, 25, COLOR_GREEN)
+           draw_text(frame, time.asctime(get_time()), 0, 25, COLOR_GREEN)
+        vidnumber = get_time()
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
-        vidnumber = last_violation_time
-        vidout, violCounter, time_since_last_alert = too_close_handler(notify_bool, audioAlert, screenShots,
+        vidout, violCounter, time_of_last_alert = too_close_handler(notify_bool, audioAlert, screenShots,
                                                 screenShotsDir, frame, vidout,
-                                                vidnumber, filename, fourcc, violCounter, time_since_last_alert)
+                                                vidnumber, filename, fourcc, violCounter, time_of_last_alert, capwidth, capheight)
         key = cv2.waitKey(1)
         if key == 27:
             break
 
     cap.release()
     if vidout != None:
-        vidout.release()
+       vidout.release()
     print("[+] Ending detection...")
-    compress_videos(screenShotsDir, vidnumber)
 
 
 def load_yolo():
@@ -186,7 +178,8 @@ def load_yolo():
         yolov3_cfg += "\\yolov3.cfg"
 
         if not os.path.exists(yolov3_weights):
-            print(f"file path to {yolov3_weights} not found")
+            #print(f"file path to {yolov3_weights} not found")
+            print("yolov3_weights file not found")
             print("Attempting to download yolov3.weights (250MB)...")
 
             # url = "https://pjreddie.com/media/files/yolov3.weights" #official source
@@ -195,7 +188,8 @@ def load_yolo():
             print("\nSuccesfully downloaded yolov3.weights")
 
         if not os.path.exists(yolov3_cfg):
-            print(f"file path to {yolov3_cfg} not found")
+            #print(f"file path to {yolov3_cfg} not found")
+            print("yolov3_cfg file not found")
             print("Attempting to download yolov3.cfg...")
 
             url = "https://raw.githubusercontent.com/noahlwest/cse115a/master/yolov3.cfg"  # our github
@@ -279,13 +273,13 @@ def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
             x1 = int(x1)
             y1 = int(y1)
             dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img, (x1 - 20, y1))
-            print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
+            #print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
 
 
 def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle, v_fov, h_fov):
     # get "unique" boxes
     if_violation = False
-    print("[+] Drawing lines")
+    #print("[+] Drawing lines")
     un_flatten_index = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
 
     if isinstance(un_flatten_index, tuple):
