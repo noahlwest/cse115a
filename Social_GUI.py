@@ -6,7 +6,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtWidgets import *
 import image_functions as img
 import files_rc
-
+import os
 
 class Ui_MainWindow(object):
 
@@ -1117,7 +1117,7 @@ class Ui_MainWindow(object):
         # set text
         self.label_title_bar_top.setText(_translate("MainWindow", "Main Window - Base"))
         self.label_top_info_2.setText(_translate("MainWindow", "| HOME"))
-        self.label_6.setText(_translate("MainWindow", "Social Distince Detector"))
+        self.label_6.setText(_translate("MainWindow", "Social Distance Detector"))
         self.start_button.setText(_translate("MainWindow", "Start"))
         self.label_video.setText(_translate("MainWindow", "Choose Video File"))
         self.Open_v_button.setText(_translate("MainWindow", "Choose Video"))
@@ -1185,12 +1185,17 @@ class Ui_MainWindow(object):
 
 
         if(height < 0.0 or height > 200.0 or angle < 0.0 or angle > 90.0  or \
-           fov_h  < 0.0 or fov_h  > 359.0 or fov_v < 0.0 or fov_v > 359.0 ):
+           fov_h  < 0.0 or fov_h  > 359.0 or fov_v < 0.0 or fov_v > 359.0 or \
+           os.path.isdir(self.video_lineEdit.text())):
             msg = QMessageBox()
             msg.setWindowTitle("ERROR")
             msg.setText("Invalid value(s) entered")
             msg.setIcon(QMessageBox.Critical)
-            msg.setDetailedText("All values must be numbers and cannot be empty\n\nHeight must be in the range 0 to 200 feet\n\nAngle must be in the range 0 to 90 degrees\n\nField of Views must be in the range 0 to 360 degrees ")
+            msg.setDetailedText("All values must be numbers and cannot be empty\n\n\
+                                 Height must be in the range 0 to 200 feet\n\n\
+                                 Angle must be in the range 0 to 90 degrees\n\n\
+                                 Field of Views must be in the range 0 to 360 degrees\n\n\
+                                 Video path must be a path to a video")
             x = msg.exec_()
         else:
             img.init_opencv()
@@ -1199,11 +1204,29 @@ class Ui_MainWindow(object):
 
 
     def open_video_dialog(self):
+        def updateText():
+            # update the contents of the line edit widget with the selected files
+            selected = []
+            for index in view.selectionModel().selectedRows():
+                  selected.append('"{}"'.format(index.data()))
+            lineEdit.setText(' '.join(selected))
         check = QWidget()
-        dialog = QFileDialog(check)
-        dialog.setFileMode(QFileDialog.FileMode.Directory)
+        dialog = QtWidgets.QFileDialog(check)
+        dialog.setFileMode(dialog.AnyFile)
+        dialog.setOption(dialog.DontUseNativeDialog, True)
+        dialog.accept = lambda: QtWidgets.QDialog.accept(dialog)
+        
+        stackedWidget = dialog.findChild(QtWidgets.QStackedWidget)
+        view = stackedWidget.findChild(QtWidgets.QListView)
+        view.selectionModel().selectionChanged.connect(updateText)
+        
+        lineEdit = dialog.findChild(QtWidgets.QLineEdit)
+        # clear the line edit contents whenever the current directory changes
+        dialog.directoryEntered.connect(lambda: lineEdit.setText(''))
+        
+        dialog.exec_()
         print(QFileDialog.fileMode(dialog))
-        path, _ = dialog.getOpenFileName()
+        path = dialog.selectedFiles()[0]
         self.video_lineEdit.setText(path)
         print(self.video_lineEdit.text())
 
@@ -1233,7 +1256,5 @@ class Ui_MainWindow(object):
         print(QFileDialog.fileMode(dialog))
         path = dialog.selectedFiles()[0]
         self.screenpath_lineEdit.setText(path)
-        print("Selected files = ")
-        print(dialog.selectedFiles())
         print(self.screenpath_lineEdit.text())
 
