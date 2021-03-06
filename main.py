@@ -4,6 +4,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtCore import (QCoreApplication, QPropertyAnimation, QDate, QDateTime, QMetaObject, QObject, QPoint, QRect, QSize, QTime, QUrl, Qt, QEvent)
 from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont, QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter, QPixmap, QRadialGradient)
 from PySide2.QtWidgets import *
+import os
 
 # GUI FILE
 from app_modules import *
@@ -201,8 +202,9 @@ class MainWindow(QMainWindow):
     ############################## ---/--/--- ##############################
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    QtGui.QFontDatabase.addApplicationFont('fonts/segoeui.ttf')
-    QtGui.QFontDatabase.addApplicationFont('fonts/segoeuib.ttf')
-    window = MainWindow()
-    sys.exit(app.exec_())
+   os.system("cls")
+   app = QApplication(sys.argv)
+   QtGui.QFontDatabase.addApplicationFont('fonts/segoeui.ttf')
+   QtGui.QFontDatabase.addApplicationFont('fonts/segoeuib.ttf')
+   window = MainWindow()
+   sys.exit(app.exec_())
