@@ -1,11 +1,8 @@
-# GUI FILE
+# GUI FILE FOR WIDGETS
 from Social_GUI import Ui_MainWindow
 
-# IMPORT QSS CUSTOM
+# IMPORT CUSTOM STYLEE
 from ui_styles import Style
 
-# IMPORT FUNCTIONS
+# IMPORT GUI FUNCTIONS
 from ui_functions import *
-
-## ==> APP FUNCTIONS
-from app_functions import *
