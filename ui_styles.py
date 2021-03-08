@@ -1,4 +1,4 @@
-
+#STYLE STANDARD FOR GUI
 class Style():
 
     style_bt_standard = (
