@@ -31,3 +31,9 @@ Noah:
   - Manually tested our ability to acquire missing resources given incomplete project
   - Manually tested our implementation of CUDA programming
   - Manually ran our program many times to ensure no problems with normal usage
+
+
+Module .exe - Rory
+- Tested the Packaging of the .exe and .dll files
+- Tested source code speed with final .exe 
+- Tested and check for errors with final .exe
