@@ -7,3 +7,16 @@ Module GUI- Seth
 - Tested if the boolen values for the check boxes worked
 - Tested the menu functions to see if they can be glitched
 
+Module Distance- Tim
+- Manually tested distance formula from person to camera using measuring tape.
+- Tested Calibrating camera specs for accuracy.
+
+Module Image Functions- Tim
+- Tested a proper foot detection algorithm
+- Tested printing distance to persons foot
+- Tested lines between 2 people
+- Tested lines between >2 people
+- Tested distance being applied to the middle of the line
+
+Module Video Notification- Tim
+- Tested a cool down system to keep the record going during bad detections.
