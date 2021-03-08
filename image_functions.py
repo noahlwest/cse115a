@@ -8,17 +8,18 @@ import time
 HEIGHT_CONSTANT = 3
 WIDTH_CONSTANT = 4
 
-DISTANCE_VIOLATION = 6
+DISTANCE_VIOLATION = 6  # feet
 
 PIXEL_WIDTH = 1280
 PIXEL_HEIGHT = 720
 
 COLOR_GREEN = (0, 255, 0)
 COLOR_RED = (0, 0, 255)
-VIOLATION_WAIT = 6
 
+VIOLATION_WAIT = 6 
 SECONDS_VIOLATION = 10
 ALERT_TIMER = 10
+
 
 # Input:       none
 # Output:      string local time
@@ -26,14 +27,16 @@ ALERT_TIMER = 10
 def get_time():
     return time.localtime(time.time())
 
+
 # Input:       a date object from the time module
 # Output:      a string version of the date
 # Description: stringifies the date into the format (year-month-day-minute-second)
 def format_date_time(date):
     year = date.tm_year
     month = date.tm_mon
-    return str(date.tm_year) + "-" + str(date.tm_mon) + "-" + str(date.tm_mday) + "-" \
-           + str(date.tm_min) + "-" + str(date.tm_sec)
+    return str(date.tm_year) + "-" + str(date.tm_mon) + "-" + str(date.tm_mday) + "-" + \
+           str(date.tm_min) + "-" + str(date.tm_sec)
+
 
 # For the next two functions
 # Input:       none
@@ -42,34 +45,39 @@ def format_date_time(date):
 def init_opencv():
     cv2.startWindowThread()
 
+
 def stop_opencv():
     cv2.destroyAllWindows()
     cv2.waitKey(1)
 
+
 # Input:       source, video file name
 # Output:      cap
-# Description: creates a video capture object that allows for reading from a source. Currently supported video types are webcams and video files. If source is video file, the video capture object reads from the video file
-def start_videocapture(source, location):
+# Description: Creates a video capture object that allows for reading from a source.
+#              Currently supported video types are webcams and video files.
+#              If source is video file, the video capture object reads from the video file
+def start_video_capture(source, location):
     print("[+] Getting Video feed")
-    mywidth = 0
-    myheight = 0
+    my_width = 0
+    my_height = 0
+    cap = 0
     if source == "webcam":
         cap = cv2.VideoCapture(0)  # starts on default webcam
         print("[+] Webcam set-up")
-        mywidth = PIXEL_WIDTH
-        myheight = PIXEL_HEIGHT
+        my_width = PIXEL_WIDTH
+        my_height = PIXEL_HEIGHT
     elif source == "video_file":
         cap = cv2.VideoCapture(location)
         print("[+] Video File set-up")
-        mywidth = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        myheight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        my_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        my_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     else:
         # no input:
         print("Invalid starting configuration. Exiting.")
         exit(1)
-    set_cap_height_and_width(cap, mywidth, myheight)
-    return cap, mywidth, myheight
-    # TODO: add video stream as possible source
+    set_cap_height_and_width(cap, my_width, my_height)
+    return cap, my_width, my_height
+
 
 # Input:       cap, height, width
 # Output:      none
@@ -78,11 +86,13 @@ def set_cap_height_and_width(cap, height, width):
     cap.set(HEIGHT_CONSTANT, height)
     cap.set(WIDTH_CONSTANT, width)
 
+
 # Input:       frame, width, height
 # Output:      none
 # Description: resizes the frame to the new width and height
 def resize_frame(frame, width, height):
     cv2.resize(frame, (width, height))
+
 
 # Input:       number of people, frame
 # Output:      none
@@ -90,62 +100,66 @@ def resize_frame(frame, width, height):
 def display_number_of_people(num_people, frame):
     text = "Number of people detected = " + str(num_people)
     font = cv2.FONT_HERSHEY_SIMPLEX
-    bottomLeft = (10, frame.shape[0])
-    fontScale = 1
-    fontColor = (255, 255, 255)
-    lineType = 2
-    cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
+    bottom_left = (10, frame.shape[0])
+    font_scale = 1
+    font_color = (255, 255, 255)
+    line_type = 2
+    cv2.putText(frame, text, bottom_left, font, font_scale, font_color, line_type)
+
 
 # Input:       directory name
 # Output:      none
 # Description: creates a directory with the name provided
-def create_dir(dirname):
+def create_dir(dir_name):
     try:
-        os.mkdir(dirname)
+        os.mkdir(dir_name)
     except OSError as error:
         pass
+
 
 # Input:       violation bool, audio alert bool, screenshot bool, screenshot directory,
 #              frame, output video writer, current time,
 #              screenshot filename, video writer fourcc (data)
 #              time_of_last_alert, video capture width, video capture height
 # Output:      output video writer, screenshot number
-# Description: if there is a violation, optionally play an alert based on audio alert, optionally save the frame to a video,
-#              creating a new video writer to a new file as needed.
+# Description: if there is a violation, optionally play an alert based on audio alert, optionally save the frame to a
+#              video, creating a new video writer to a new file as needed.
 #              If there are no violations, end the video writer and reset the last time an alert was played.
-def too_close_handler(violation, audioAlert, screenShots, frame, vidout, vidtime,
-                      filename, fourcc, time_of_last_alert, capwidth, capheight):
-    if violation == True:
-       if audioAlert == True and (time.time() - time_of_last_alert >= ALERT_TIMER):
-           print('\a')
-           time_of_last_alert = time.time()
-           # implement some more advanced stuff?
-       if screenShots == True:
-          videoname = filename + format_date_time(vidtime) + ".mp4"
-          if vidout == None:
-             vidout = cv2.VideoWriter(videoname, fourcc, 20.0, (int(capwidth), int(capheight)))
-          if vidout != None:
-             vidout.write(frame)
+def too_close_handler(violation, audio_alert, record_video, frame, video_out, video_time,
+                      file_name, fourcc, time_of_last_alert, cap_width, cap_height):
+    if violation:
+        if audio_alert and (time.time() - time_of_last_alert >= ALERT_TIMER):
+            print('\a')
+            time_of_last_alert = time.time()
+            # implement some more advanced stuff?
+        if record_video:
+            video_name = file_name + format_date_time(video_time) + ".mp4"
+            if video_out is None:
+                video_out = cv2.VideoWriter(video_name, fourcc, 20.0, (int(cap_width), int(cap_height)))
+            if video_out is not None:
+                video_out.write(frame)
     else:
-        if vidout != None:
-           vidout.release()
-           vidout = None
-           time_of_last_alert = 0
-    return vidout, time_of_last_alert
+        if video_out is not None:
+            video_out.release()
+            video_out = None
+            time_of_last_alert = 0
+    return video_out, time_of_last_alert
 
-# Input:       screenshot directory name        
+
+# Input:       video directory name
 # Output:      the first part of the video output name, video writer fourcc (data)
 # Description: generates the part of the output name that is standard to all output videos
 #              and video output data specifically for mp4 videos
-def setup_vidout(screenShotsDir):
+def setup_video_out(video_out_dir):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     filename = 'output'
-    if (screenShotsDir == ''):
-        finalpath = filename
+    if video_out_dir == '':
+        final_path = filename
     else:
-        finalpath = screenShotsDir + '/' + filename
-        create_dir(screenShotsDir)
-    return finalpath, fourcc
+        final_path = video_out_dir + '/' + filename
+        create_dir(video_out_dir)
+    return final_path, fourcc
+
 
 # Input:       height of camera, angle of camera (0 degrees = points at floor), horizontal field of view,
 #              vertical field of view, boolean for reading from webcam (true = read from webcam, false = read from file,
@@ -153,57 +167,55 @@ def setup_vidout(screenShotsDir):
 #              directory, path to input video file
 # Output:      none
 # Description: glues together all of the setup and the processing, releasing and breaking down objects as needed
-def start_human_detection_loop(height, angle, fov_h, fov_v, webCheck, audioAlert, screenShots, screenshot_path, video_path):
-    #TODO: add usage for fov_h, fov_v, webCheck, audioAlert, screenShots
-    if screenshot_path == "":
-       screenShotsDir = os.getcwd()
-       screenShotsDir += "/screenshots"
+def start_human_detection_loop(height, angle, fov_h, fov_v, web_check, audio_alert, save_video, save_video_path,
+                               video_path):
+    if save_video_path == "":
+        screenShotsDir = os.getcwd()
+        screenShotsDir += "/screenshots"
     else:
-       screenShotsDir = screenshot_path
+        screenShotsDir = save_video_path
     print("screenShotsDir = " + screenShotsDir)
     print("[+] Human detection started")
     model, classes, colors, output_layers = load_yolo()
     source = "video_file"
-    if webCheck:
-       source = "webcam"
-    cap, capwidth, capheight = start_videocapture(source, video_path)
+    if web_check:
+        source = "webcam"
+    cap, cap_width, cap_height = start_video_capture(source, video_path)
     # setup screenshot stuff to save a video
-    filename, fourcc = setup_vidout(screenShotsDir)
-    vidout = None
-    vidnumber = 0
-    violCounter = 0
-
+    filename, fourcc = setup_video_out(screenShotsDir)
+    video_out = None
     last_violation_time = 0
     time_of_last_alert = 0
-    while (True):
+    while True:
         ret, frame = cap.read()
 
         height_window, width, channels = frame.shape
         blob, outputs = detect_objects(frame, model, output_layers)
         boxes, confs, class_ids = get_box_dimensions(outputs, height_window, width)
 
-        update_notify = draw_all_lines(boxes, confs, colors, class_ids, classes, frame, height, angle, fov_v, fov_h)
-        # cooldown - notify_bool will tell the program to continue taking video or not.
+        update_notify = draw_all_lines(boxes, confs, class_ids, frame, height, angle, fov_v, fov_h)
+        # cool down - notify_bool will tell the program to continue taking video or not.
         if update_notify:
             last_violation_time = time.time()
         notify_bool = (update_notify or time.time() - last_violation_time < SECONDS_VIOLATION)
 
-        print_on_feet(boxes, confs, colors, class_ids, frame, height, angle, fov_v)
-        if webCheck:
-           draw_text(frame, time.asctime(get_time()), 0, 25, COLOR_GREEN)
-        vidnumber = get_time()
+        print_on_feet(boxes, confs, class_ids, frame, height, angle, fov_v)
+        if web_check:
+            draw_text(frame, time.asctime(get_time()), 0, 25, COLOR_GREEN)
+        video_number = get_time()
         draw_labels(boxes, confs, colors, class_ids, classes, frame)
-        vidout, time_of_last_alert = too_close_handler(notify_bool, audioAlert, screenShots,
-                                                frame, vidout,
-                                                vidnumber, filename, fourcc, time_of_last_alert, capwidth, capheight)
+        video_out, time_of_last_alert = too_close_handler(notify_bool, audio_alert, save_video,
+                                                          frame, video_out, video_number, filename, fourcc,
+                                                          time_of_last_alert, cap_width, cap_height)
         key = cv2.waitKey(1)
         if key == 27:
             break
 
     cap.release()
-    if vidout != None:
-       vidout.release()
+    if video_out is not None:
+        video_out.release()
     print("[+] Ending detection...")
+
 
 # Input:       none
 # Output:      net, classes, colors, output_layers ****NEEDS AN EXPLANATION OF WHAT THESE ARE****
@@ -220,7 +232,7 @@ def load_yolo():
         yolov3_cfg += "\\yolov3.cfg"
 
         if not os.path.exists(yolov3_weights):
-            #print(f"file path to {yolov3_weights} not found")
+            # print(f"file path to {yolov3_weights} not found")
             print("yolov3_weights file not found")
             print("Attempting to download yolov3.weights (250MB)...")
 
@@ -230,7 +242,7 @@ def load_yolo():
             print("\nSuccesfully downloaded yolov3.weights")
 
         if not os.path.exists(yolov3_cfg):
-            #print(f"file path to {yolov3_cfg} not found")
+            # print(f"file path to {yolov3_cfg} not found")
             print("yolov3_cfg file not found")
             print("Attempting to download yolov3.cfg...")
 
@@ -264,26 +276,29 @@ def load_yolo():
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
     return net, classes, colors, output_layers
 
+
 # Input:       a blob
 # Output:      none
 # Description: ??? ****NEEDS A DESCRIPTION****
 def display_blob(blob):
-    '''
-            Three images each for RED, GREEN, BLUE channel
-    '''
+    """
+    Three images each for RED, GREEN, BLUE channel
+    """
     for b in blob:
         for n, imgb in enumerate(b):
             cv2.imshow(str(n), imgb)
 
+
 # Input:       frame
 # Output:      a blob, outputs ****NEEDS A BRIEF DESCRIPTION OF outputs****
 # Description: ??? ****NEEDS A DESCRIPTION****
-def detect_objects(frame, net, outputLayers):
+def detect_objects(frame, net, output_layers):
     blob = cv2.dnn.blobFromImage(frame, scalefactor=0.00392, size=(
         320, 320), mean=(0, 0, 0), swapRB=True, crop=False)
     net.setInput(blob)
-    outputs = net.forward(outputLayers)
+    outputs = net.forward(output_layers)
     return blob, outputs
+
 
 # Input:       outputs, height, width ****NEEDS A BRIEF DESCRIPTION OF outputs****
 # Output:      boxes, confs, class_ids ****NEEDS AN EXPLANATION OF WHAT THESE ARE****
@@ -309,11 +324,12 @@ def get_box_dimensions(outputs, height, width):
                 class_ids.append(class_id)
     return boxes, confs, class_ids
 
+
 # Input:       boxes, confs, colors, class_ids, img, height of camera, angle of camera, vertical field of view
 # ****NEEDS AN EXPLANATION FOR confs, colors, class_ids****
 # Output:      none
 # Description: if a box (i.e., an object) is detected as a person, print text on the right under the feet
-def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
+def print_on_feet(boxes, confs, class_ids, img, height, angle, fov_v):
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
     feet = get_feet_pos(boxes)
     distances = []
@@ -323,17 +339,17 @@ def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
                 x1, y1 = feet[i]
                 x1 = int(x1)
                 y1 = int(y1)
-                dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img, (x1 - 20, y1))
-                #print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
+                dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img,
+                             (x1 - 20, y1))
 
-# Input:       a list of boxes, confs, a list of colors, class_ids, classes, an image img, height of camera, angle of camera, vertical field of view
-# ****NEEDS AN EXPLANATION FOR confs, colors, class_ids, classes****
+
+# Input:       a list of boxes, confs, a list of colors, class_ids, classes, an image img, height of camera,
+#              angle of camera, vertical field of view
 # Output:      boolean for if there is a violation
-# Description: ??? ****NEEDS A DESCRIPTION****
-def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle, fov_v, fov_h):
+# Description: Draws lines and distance between detected humans
+def draw_all_lines(boxes, confs, class_ids, img, height, angle, fov_v, fov_h):
     # get "unique" boxes
     if_violation = False
-    #print("[+] Drawing lines")
     un_flatten_index = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
 
     if isinstance(un_flatten_index, tuple):
@@ -357,15 +373,20 @@ def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle,
             dist = distance_functions.return_distance(new_feet[i], new_feet[j], fov_v, fov_h, angle, dist1, dist2)
             if dist < DISTANCE_VIOLATION:
                 if_violation = True
-            draw_text(img, str(round(dist, 2)), int((abs(x1 + x2) / 2)), int((abs(y1 + y2) / 2)), colors[1])
-            draw_line(img, x1, y1, x2, y2, colors[1])
+                violation_color = COLOR_RED
+            else:
+                violation_color = COLOR_GREEN
+            draw_text(img, str(round(dist, 2)), int((abs(x1 + x2) / 2)), int((abs(y1 + y2) / 2)), violation_color)
+            draw_line(img, x1, y1, x2, y2, violation_color)
 
     return if_violation
+
 
 # Input:       a list of boxes, confs, a list of colors, class_ids, classes, an image
 # ****NEEDS AN EXPLANATION FOR confs, class_ids, classes****
 # Output:      the number of people detected
-# Description: draws each box around each detected person, displaying the distance the person is from the camera and counting each one, returning the counter
+# Description: draws each box around each detected person, displaying the distance the person is from the camera and
+#              counting each one, returning the counter
 def draw_labels(boxes, confs, colors, class_ids, classes, img):
     # get "unique" boxes
     indexes = cv2.dnn.NMSBoxes(boxes, confs, 0.5, 0.4)
@@ -386,13 +407,15 @@ def draw_labels(boxes, confs, colors, class_ids, classes, img):
 
     return counter
 
+
 # Input:       frame, start x, start y, end x, end y, a color
 # Output:      none
 # Description: draws a line from the start x, y to the end x, y with the given color
-def draw_line(frame, xA, yA, xB, yB, color):
-    point_one = (xA, yA)
-    point_two = (xB, yB)
+def draw_line(frame, x1, y1, x2, y2, color):
+    point_one = (x1, y1)
+    point_two = (x2, y2)
     cv2.line(frame, point_one, point_two, color, thickness=2)
+
 
 # Input:       frame, text, bottom left x, bottom left y, color
 # Output:      none
@@ -400,6 +423,7 @@ def draw_line(frame, xA, yA, xB, yB, color):
 def draw_text(frame, text, x_coord, y_coord, color):
     point = (x_coord, y_coord)
     cv2.putText(frame, text, point, cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+
 
 # Input:       a distance, frame, bottom left coordinate
 # Output:      none
@@ -412,6 +436,7 @@ def dist_on_foot(dis, frame, coord):
     fontColor = (255, 255, 255)
     lineType = 2
     cv2.putText(frame, text, bottomLeft, font, fontScale, fontColor, lineType)
+
 
 # Input:       a list of boxes representing people
 # Output:      a list of feet positions
