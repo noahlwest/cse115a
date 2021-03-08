@@ -1,0 +1,9 @@
+Testing File for Team Laser Sharks Social Distance Detector
+
+Module GUI- Seth
+- Tested values on camera specifations that make the error popup and ones that are valid
+- Tested all buttons and resizing for gui
+- Tested the radio button so only one can be selected and one always has to be selected
+- Tested if the boolen values for the check boxes worked
+- Tested the menu functions to see if they can be glitched
+
