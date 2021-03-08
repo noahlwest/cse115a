@@ -1,10 +1,10 @@
 Testing File for Team Laser Sharks Social Distance Detector
 
 Module GUI- Seth
-- Tested values on camera specifations that make the error popup and ones that are valid
+- Tested values on camera specifications that make the error popup and ones that are valid
 - Tested all buttons and resizing for gui
 - Tested the radio button so only one can be selected and one always has to be selected
-- Tested if the boolen values for the check boxes worked
+- Tested if the boolean values for the check boxes worked
 - Tested the menu functions to see if they can be glitched
 
 Module Distance- Tim
@@ -20,3 +20,14 @@ Module Image Functions- Tim
 
 Module Video Notification- Tim
 - Tested a cool down system to keep the record going during bad detections.
+
+Noah:
+• Human Detection
+  - Manually tested webcam feed and videos for general object detection (COCO)
+  - Manually tested webcam feed for human-only detection
+  - Manually tested sample videos for human-only detection
+• General testing
+  - Manually tested our usage of OpenCV functions
+  - Manually tested our ability to acquire missing resources given incomplete project
+  - Manually tested our implementation of CUDA programming
+  - Manually ran our program many times to ensure no problems with normal usage
