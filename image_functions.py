@@ -319,12 +319,12 @@ def print_on_feet(boxes, confs, colors, class_ids, img, height, angle, fov_v):
     distances = []
     for i in range(len(boxes)):
         if i in indexes:
-            # if class_ids[i] == 0:
-            x1, y1 = feet[i]
-            x1 = int(x1)
-            y1 = int(y1)
-            dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img, (x1 - 20, y1))
-            #print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
+            if class_ids[i] == 0:
+                x1, y1 = feet[i]
+                x1 = int(x1)
+                y1 = int(y1)
+                dist_on_foot(distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT), img, (x1 - 20, y1))
+                #print("Distance: ", distance_functions.find_distance(height, angle, fov_v, y1 / PIXEL_HEIGHT))
 
 # Input:       a list of boxes, confs, a list of colors, class_ids, classes, an image img, height of camera, angle of camera, vertical field of view
 # ****NEEDS AN EXPLANATION FOR confs, colors, class_ids, classes****
@@ -349,9 +349,6 @@ def draw_all_lines(boxes, confs, colors, class_ids, classes, img, height, angle,
 
     for i in range(len(new_feet)):
         for j in range(i + 1, len(new_feet)):
-
-            if class_ids[i] != 0 or class_ids[j] != 0:
-                continue
 
             (x1, y1) = new_feet[i]
             (x2, y2) = new_feet[j]
