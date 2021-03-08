@@ -7,3 +7,9 @@ Module GUI- Seth
 - Tested if the boolen values for the check boxes worked
 - Tested the menu functions to see if they can be glitched
 
+Benson:
+- Manually tested selecting an input video with and without saving output videos on violation
+- Manually tested selecting an input video with and without playing a sound on violation
+- Manually tested selecting an output video directory
+- Manually tested what happens when selecting a directory as an input video
+- Manually tested what happens when selecting a non-video an input video (bug)
