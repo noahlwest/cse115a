@@ -1,0 +1,26 @@
+There are three main ways to run the file:
+1. Running the executable file provided by Rory
+2. Running the source code through python without CUDA (standard, default)
+3. Running the source code through python with CUDA (non-standard)
+
+Executable file:
+The executable is in a zip file, and the zip file is too big for github. So, it'll have to be acquired through some other method, like our project's Google Drive. This zip file contains a folder with the executable and all necessary files. Simply run the executable and the program will open.
+
+Python without CUDA:
+The main driver of the program is main.py. There are library requirements that need to be installed for the program, and they are kept in requirements.txt. They can be installed with:
+pip install -R requirements.txt
+After the requirements are installed, simply run:
+python main.py
+and the program will open.
+
+Python with CUDA:
+The main driver of the program is main.py There are library requirements that need to be installed for they program, and they are kept in requirements.txt. However, do not install them using the pip install -R command, because we will use a different version of OpenCV. Instead, install numpy, wget, and PySide2 with: 
+pip install numpy wget pyside2
+You will also need to have a working install of OpenCV compiled with CUDA support. There are guides online, but they may be outdated.
+Windows Guide: https://medium.com/analytics-vidhya/build-opencv-from-source-with-cuda-for-gpu-access-on-windows-5cd0ce2b9b37#3860
+Linux Guide: https://jamesbowley.co.uk/accelerate-opencv-4-4-0-build-with-cuda-and-python-bindings/#python38
+
+Running the program:
+After the program is launched, the GUI will pop up. On the left side of the GUI, there are three buttons. A hamburger (3 lines) button, a home button, and a settings button. Adjust the Camera Specifications in the settings to match your camera configuration if you're using a live feed. Otherwise, you can choose a video file and tick the option that says you're using a video file. Then, navigate back to Home and start the program. The camera settings are unique, so the default values will likely not give accurate distancing for most users.
+
+When the program is running, boxes are drawn around detected humans. Lines are drawn between the base (most often the feet) of the detected people, the numbers at the bases of the detected people are their distance from the camera, and the numbers on the lines between people are their distances from each other. If people are seen closer than 6 feet from each other, the lines are drawn in red. Otherwise, the distance is safe and the lines are drawn in green. If sound notifications are turned on, they'll use the portable beep. If command line or terminal is muted, the beep may not play. If the option to save screenshots is on, videos will be saved of violations that occur, with a small buffer of non-violation video at the end.
