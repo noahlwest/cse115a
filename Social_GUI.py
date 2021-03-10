@@ -1008,7 +1008,7 @@ class Ui_MainWindow(object):
         self.label_path.setText(_translate("MainWindow", "Choose Screen Shot Path"))
         self.Open_p_button.setText(_translate("MainWindow", "ChoosePath"))
         self.label_vo.setText(_translate("MainWindow", "Video Options"))
-        self.label_do.setText(_translate("MainWindow", "Distincing Options"))
+        self.label_do.setText(_translate("MainWindow", "Distancing Options"))
         self.webcam_Radio.setText(_translate("MainWindow", "Webcam (Default)"))
         self.audio_Check.setText(_translate("MainWindow", "Audio Alert"))
         self.video_Radio.setText(_translate("MainWindow", "Video"))
